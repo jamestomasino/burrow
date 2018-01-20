@@ -75,7 +75,7 @@ function update_gopher() {
 }
 
 function recipe_new() {
-  read -p "What is the name of your recipe: " title
+  read -e -p "What is the name of your recipe: " title
   if [[ $title == "" ]]
   then
     echo "Cancelled."
@@ -123,7 +123,7 @@ function recipe_new() {
 }
 
 function phlog_new() {
-  read -p "Enter a title for your post: " title
+  read -e -p "Enter a title for your post: " title
   if [[ $title == "" ]]
   then
     echo "Cancelled."
