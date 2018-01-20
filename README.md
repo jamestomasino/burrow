@@ -27,20 +27,21 @@ View the manual for more information.
 
 ## Config
 
-`burrow` supports two ways to define config.
+`burrow` supports locations to define config.
 
-1) `$HOME/.config/burrow`
-2) `$HOME/.burrow`
+1) `$HOME/.config/burrow/config`
+2) `$HOME/.config/burrow`
+3) `$HOME/.burrow`
 
 In either location, the following options are available and show their defaults:
 
 ```bash
-location_gopher = "$HOME/gopher"
-location_phlog = "$HOME/gopher/phlog"
-location_recipebox = "$HOME/gopher/recipebox"
-git_commit = false
-git_push = false
-custom_editor = false
+location_gopher="$HOME/gopher"
+location_phlog="$HOME/gopher/phlog"
+location_recipebox="$HOME/gopher/recipebox"
+git_commit=false
+git_push=false
+custom_editor=false
 ```
 
 ## Contributing
