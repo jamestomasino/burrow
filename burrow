@@ -12,8 +12,8 @@ config_location_phlog="${config_location_gopher}/phlog"
 config_custom_editor=""
 config_post_phlog_command=""
 config_post_recipebox_command=""
-config_git_commit=0
-config_git_push=0
+config_git_commit=false
+config_git_push=false
 
 # vars from flags
 flag_verbose=0
@@ -142,6 +142,7 @@ function recipe_new() {
     $editor "$post_path"
     echo -e "0$title\t$(basename "$post_path")\n$(cat "${config_location_recipebox}/gophermap")" > "${config_location_recipebox}/gophermap"
     sort -fo "${config_location_recipebox}/gophermap" "${config_location_recipebox}/gophermap"
+
     update_gopher_date
 
     if [[ $config_post_recipebox_command != "" ]]
@@ -149,12 +150,12 @@ function recipe_new() {
       $config_post_recipebox_command
     fi
 
-    if [[ $config_git_commit -gt 0 ]]
+    if [[ $config_git_commit != false ]]
     then
       pushd "$config_location_gopher"
       git add "${config_location_recipebox}/gophermap" "${post_path}" "${config_location_gopher}/gophermap"
       git commit -m "Recipe: $title"
-      if [[ $config_git_push -gt 0 ]]
+      if [[ $config_git_push != false ]]
       then
         git pull
         git push
@@ -211,8 +212,8 @@ function phlog_new() {
     rm "$links"
 
     echo "Updating phlog listing"
-
     echo -e "1$(date +%Y-%m-%d) - $title\t$(basename "$post_dir")\n$(cat "${config_location_phlog}/gophermap")" > "${config_location_phlog}/gophermap"
+
     update_gopher_date
 
     if [[ $config_post_phlog_command != "" ]]
@@ -221,13 +222,13 @@ function phlog_new() {
       $config_post_phlog_command
     fi
 
-    if [[ $config_git_commit -gt 0 ]]
+    if [[ $config_git_commit != false ]]
     then
       echo "Committing to git repository"
       pushd "$config_location_gopher"
       git add "${config_location_phlog}/gophermap" "${post_path}" "${config_location_gopher}/gophermap"
       git commit -m "Phlog: $title"
-      if [[ $config_git_push -gt 0 ]]
+      if [[ $config_git_push != false ]]
       then
         echo "Pushing to git remote"
         git pull
