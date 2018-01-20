@@ -1,7 +1,46 @@
-.TH BURROW 1
+.TH BURROW 1 "20 Jan 2018" "version 0.1.0"
 .SH NAME
 burrow \- a helper for building and managing a gopher hole
+.SH SYNOPSIS
+burrow [-vf] [action]
 .SH DESRIPTION
 .B burrow
-will get a man page sooner or later. In the meantime,
-consult the source.
+is a collection of helper actions designed to assist in the creation,
+modification, and maintenance of a gopher hole.
+.SH OPTIONS
+.TP
+.B phlog
+Create a new phlog entry.
+.TP
+.B recipe
+Add a new recipe to the recipe box.
+.TP
+.B create-config
+Generates a default configuration file at
+.I ~/.config/burrow/config
+if no other configuration file exists. It is populated with the default
+settings.
+.TP
+.B update-git
+If the gopher directory resides within a git repository, this action will do a
+silent
+.B git-pull
+which is useful for crons.
+.TP
+.B -v
+Enable verbose logging.
+.TP 
+.B -h
+Show the help.
+.SH FILES
+.I ~/.config/burrow/config
+, 
+.I ~/.config/burrow
+, 
+.I ~/.burrow
+: configuration settings for burrow. If none of these are available, the default
+configuration is loaded.
+.SH BUGS
+None known.
+.SH AUTHOR
+James Tomasino <tomasino (at) sdf (dot) org>
