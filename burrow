@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+shopt -s extglob
+configfile="/path/to/file"
+
+function read_config() {
+  while IFS='= ' read lhs rhs
+  do
+    if [[ $lhs != *( )#* ]]
+    then
+      # Specify test conditions for settings here
+      declare $lhs=$rhs
+    fi
+  done < "$configfile"
+}
+
+function show_help() {
+  cat > /dev/stdout << END
+${0} [-h]
+
+REQUIRED ARGS:
+
+
+OPTIONAL ARGS:
+-h - show this help
+-v - verbose logging
+
+END
+}
+
+function parseopts() {
+  while getopts ":hv" opt
+  do
+    case "${opt}" in
+      h)
+        show_help
+        exit 0
+        ;;
+      v) VERBOSE=1 ;;
+      *)
+        echo "Invalid option. Try -h for help."
+        exit 1
+    esac
+  done
+  return $OPTIND
+}
+
+function parseargs() {
+  for p in "$@"
+  do
+    args+=("$p")
+  done
+}
+
+function main() {
+  parseopts "$@"
+  parseargs "${@:$?}"
+
+  if [[ ${VERBOSE} -gt 0 ]]
+  then
+    set -x
+  fi
+}
+
+main "$@"
