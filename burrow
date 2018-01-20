@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# v1.0.0rc
+version="v1.0.0rc"
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 editor=${EDITOR:-vi}
@@ -16,7 +16,7 @@ config_git_commit=false
 config_git_push=false
 
 # vars from flags
-flag_verbose=0
+flag_debug=0
 
 # vars from args
 arg_recipe=0
@@ -35,8 +35,9 @@ create-config - create a default configuration file
 update-git    - silently pulls gopher git repo if it exists
 
 OPTIONAL FLAGS:
-help    [-h]  - show this help
-verbose [-v]  - verbose logging
+-h  - show this help
+-v  - show current version info
+-d  - debug mode
 
 END
 }
@@ -50,14 +51,15 @@ popd () {
 }
 
 function parseopts() {
-  while getopts ":hv" opt
+  while getopts ":hvd" opt
   do
     case "${opt}" in
       h)
         show_help
         exit 0
         ;;
-      v) flag_verbose=1 ;;
+      d) flag_debug=1 ;;
+      v) echo "$version" ;;
       *)
         echo "Invalid option. Try -h for help."
         exit 1
@@ -280,7 +282,7 @@ function main() {
   parseopts "$@"
   parseargs "${@:$?}"
 
-  if [[ ${flag_verbose} -gt 0 ]]
+  if [[ ${flag_debug} -gt 0 ]]
   then
     set -x
   fi
