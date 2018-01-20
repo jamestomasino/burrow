@@ -52,7 +52,7 @@ END
 }
 
 function parseopts() {
-  while getopts ":hvr" opt
+  while getopts ":hvrp" opt
   do
     case "${opt}" in
       h)
