@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 shopt -s extglob
-configfiles="$HOME/.config/burrow $HOME/.burrow"
+configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 editor=${EDITOR:-vi}
-location_gopher="${location_gopher}"
+location_gopher="$HOME/gopher"
 location_recipebox="${location_gopher}/recipebox"
 location_phlog="${location_gopher}/phlog"
 custom_editor=""
@@ -12,31 +12,6 @@ git_push=0
 verbose=0
 recipe=0
 phlog=0
-
-function read_config() {
-  for configfile in $configfiles
-  do
-    if [[ -f $configfile ]]
-    then
-      while IFS='= ' read lhs rhs
-      do
-        if [[ $lhs != *( )#* ]]
-        then
-          case $lhs in
-            "location_gopher"|"location_recipebox"|"location_phlog"|"git_commit"|"git_push"|"custom_editor")
-              declare $lhs=$rhs
-              ;;
-          esac
-        fi
-      done < "$configfile"
-    fi
-  done
-
-  if [[ $custom_editor ]]
-  then
-    editor=$custom_editor
-  fi
-}
 
 function show_help() {
   cat > /dev/stdout << END
@@ -214,6 +189,29 @@ function main() {
   if [[ ${verbose} -gt 0 ]]
   then
     set -x
+  fi
+
+  for configfile in $configfiles
+  do
+    if [[ -f $configfile ]]
+    then
+      while IFS='= ' read lhs rhs
+      do
+        if [[ $lhs != *( )#* ]]
+        then
+          case $lhs in
+            "location_gopher"|"location_recipebox"|"location_phlog"|"git_commit"|"git_push"|"custom_editor")
+              declare $lhs=$rhs
+              ;;
+          esac
+        fi
+      done < "$configfile"
+    fi
+  done
+
+  if [[ $custom_editor ]]
+  then
+    editor=$custom_editor
   fi
 
   if [[ ${recipe} -gt 0 ]]
