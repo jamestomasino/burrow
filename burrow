@@ -1,46 +1,55 @@
 #!/usr/bin/env bash
 
 # v0.1.0
-
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 editor=${EDITOR:-vi}
-location_gopher="$HOME/gopher"
-location_recipebox="${location_gopher}/recipebox"
-location_phlog="${location_gopher}/phlog"
-custom_editor=""
-post_phlog_command=""
-post_recipebox_command=""
-git_commit=0
-git_push=0
-verbose=0
-recipe=0
-phlog=0
+
+# vars from config
+config_location_gopher="$HOME/gopher"
+config_location_recipebox="${config_location_gopher}/recipebox"
+config_location_phlog="${config_location_gopher}/phlog"
+config_custom_editor=""
+config_post_phlog_command=""
+config_post_recipebox_command=""
+config_git_commit=0
+config_git_push=0
+
+# vars from flags
+flag_verbose=0
+
+# vars from args
+arg_recipe=0
+arg_phlog=0
+arg_create_config=0
+arg_update_git=0
 
 function show_help() {
   cat > /dev/stdout << END
-${0} [-h] [phlog|-p] [recipe|-r]
+${0} [-hv] <arguments>
 
-OPTIONAL ARGS:
-help    [-h] - show this help
-verbose [-v] - verbose logging
-recipe  [-r] - add or edit a recipe
-phlog   [-p] - post to phlog
+ARGUMENTS (multiple allowed):
+phlog         - create new phlog entry
+recipe        - add new recipe to box
+create-config - create a default configuration file
+update-git    - pulls gopher git repo if exists
+
+OPTIONAL FLAGS:
+help    [-h]  - show this help
+verbose [-v]  - verbose logging
 
 END
 }
 
 function parseopts() {
-  while getopts ":hvrp" opt
+  while getopts ":hv" opt
   do
     case "${opt}" in
       h)
         show_help
         exit 0
         ;;
-      v) verbose=1 ;;
-      r) recipe=1 ;;
-      p) phlog=1 ;;
+      v) flag_verbose=1 ;;
       *)
         echo "Invalid option. Try -h for help."
         exit 1
@@ -58,9 +67,10 @@ function parseargs() {
         show_help
         exit 0
         ;;
-      "VERBOSE") verbose=1 ;;
-      "PHLOG") phlog=1 ;;
-      "RECIPE") recipe=1 ;;
+      "PHLOG") arg_phlog=1 ;;
+      "RECIPE") arg_recipe=1 ;;
+      "CREATE-CONFIG") arg_create_config=1 ;;
+      "UPDATE-GIT") arg_update_git=1 ;;
     esac
   done
 }
@@ -75,7 +85,7 @@ function day_suffix() {
 }
 
 function update_gopher() {
-  sed --in-place='' "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${location_gopher}/gophermap"
+  sed --in-place='' "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${config_location_gopher}/gophermap"
 }
 
 function check_directory() {
@@ -95,16 +105,16 @@ function recipe_new() {
   fi
 
   title_slug=$(echo "${title}" | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
-  post_path="${location_recipebox}/$title_slug.txt"
+  post_path="${config_location_recipebox}/$title_slug.txt"
 
   if [[ -f $post_path ]]
   then
     echo "$post_path already exists"
     $editor "$post_path"
   else
-    if [[ -f "${location_recipebox}/.template" ]]
+    if [[ -f "${config_location_recipebox}/.template" ]]
     then
-      cat "${location_recipebox}/.template" > "$post_path"
+      cat "${config_location_recipebox}/.template" > "$post_path"
     else
       {
         echo "Creating $post_path"
@@ -117,21 +127,21 @@ function recipe_new() {
     fi
 
     $editor "$post_path"
-    echo -e "0$title\t$(basename "$post_path")\n$(cat "${location_recipebox}/gophermap")" > "${location_recipebox}/gophermap"
-    sort -fo "${location_recipebox}/gophermap" "${location_recipebox}/gophermap"
+    echo -e "0$title\t$(basename "$post_path")\n$(cat "${config_location_recipebox}/gophermap")" > "${config_location_recipebox}/gophermap"
+    sort -fo "${config_location_recipebox}/gophermap" "${config_location_recipebox}/gophermap"
     update_gopher
 
-    if [[ $post_recipebox_command != "" ]]
+    if [[ $config_post_recipebox_command != "" ]]
     then
-      $post_recipebox_command
+      $config_post_recipebox_command
     fi
 
-    if [[ $git_commit -gt 0 ]]
+    if [[ $config_git_commit -gt 0 ]]
     then
-      pushd "$location_gopher"
-      git add "${location_recipebox}/gophermap" "${post_path}" "${location_gopher}/gophermap"
+      pushd "$config_location_gopher"
+      git add "${config_location_recipebox}/gophermap" "${post_path}" "${config_location_gopher}/gophermap"
       git commit -m "Recipe: $title"
-      if [[ $git_push -gt 0 ]]
+      if [[ $config_git_push -gt 0 ]]
       then
         git pull
         git push
@@ -150,7 +160,7 @@ function phlog_new() {
   fi
 
   title_slug=$(echo "${title}" | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
-  post_dir="${location_phlog}/$(date +%Y%m%d)-$title_slug"
+  post_dir="${config_location_phlog}/$(date +%Y%m%d)-$title_slug"
   post_path="$post_dir/gophermap"
 
   if [[ -f $post_path ]]
@@ -158,9 +168,9 @@ function phlog_new() {
     echo "$post_path already exists"
     $editor "$post_path"
   else
-    if [[ -f "${location_phlog}/.template" ]]
+    if [[ -f "${config_location_phlog}/.template" ]]
     then
-      cat "${location_phlog}/.template" > "$post_path"
+      cat "${config_location_phlog}/.template" > "$post_path"
     else
       echo "Creating $post_path"
       mkdir -p "$post_dir"
@@ -186,20 +196,20 @@ function phlog_new() {
     cat "$links" >> "$post_path"
     rm "$links"
 
-    echo -e "1$(date +%Y-%m-%d) - $title\t$(basename "$post_dir")\n$(cat "${location_phlog}/gophermap")" > "${location_phlog}/gophermap"
+    echo -e "1$(date +%Y-%m-%d) - $title\t$(basename "$post_dir")\n$(cat "${config_location_phlog}/gophermap")" > "${config_location_phlog}/gophermap"
     update_gopher
 
-    if [[ $post_phlog_command != "" ]]
+    if [[ $config_post_phlog_command != "" ]]
     then
-      $post_phlog_command
+      $config_post_phlog_command
     fi
 
-    if [[ $git_commit -gt 0 ]]
+    if [[ $config_git_commit -gt 0 ]]
     then
-      pushd "$location_gopher"
-      git add "${location_phlog}/gophermap" "${post_path}" "${location_gopher}/gophermap"
+      pushd "$config_location_gopher"
+      git add "${config_location_phlog}/gophermap" "${post_path}" "${config_location_gopher}/gophermap"
       git commit -m "Phlog: $title"
-      if [[ $git_push -gt 0 ]]
+      if [[ $config_git_push -gt 0 ]]
       then
         git pull
         git push
@@ -209,13 +219,50 @@ function phlog_new() {
   fi
 }
 
+function create_config() {
+  if [[ ! -f "$HOME/.config/burrow/config" ]] &&
+    [[ ! -f "$HOME/.config/burrow" ]] &&
+    [[ ! -f "$HOME/.burrow" ]]
+  then
+    config="$HOME/.config/burrow/config"
+    mkdir -p "$(dirname "$config")"
+    {
+      echo "config_location_gopher=\"$HOME/gopher\""
+      echo "config_location_phlog=\"$HOME/gopher/phlog\""
+      echo "config_location_recipebox=\"$HOME/gopher/recipebox\""
+      echo "config_git_commit=false"
+      echo "config_git_push=false"
+      echo "config_custom_editor=false"
+    } >> "$config"
+  else
+    echo "Configuration already exists. Abort."
+  fi
+}
+
+function update_git() {
+  pushd "$config_location_gopher"
+  if [[ $? -eq 0 ]] 
+  then
+    if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]
+    then
+      git pull -q
+    fi
+    popd
+  fi
+}
+
 function main() {
   parseopts "$@"
   parseargs "${@:$?}"
 
-  if [[ ${verbose} -gt 0 ]]
+  if [[ ${flag_verbose} -gt 0 ]]
   then
     set -x
+  fi
+
+  if [[ ${arg_create_config} -gt 0 ]]
+  then
+    create_config
   fi
 
   for configfile in $configfiles
@@ -226,22 +273,27 @@ function main() {
     fi
   done
 
-  if [[ $custom_editor ]]
+  if [[ $config_custom_editor ]]
   then
-    editor=$custom_editor
+    editor=$config_custom_editor
   fi
 
-  check_directory "$location_gopher"
-
-  if [[ ${recipe} -gt 0 ]]
+  if [[ ${arg_update_git} -gt 0 ]]
   then
-    check_directory "$location_recipebox"
+    update_git
+  fi
+
+  if [[ ${arg_recipe} -gt 0 ]]
+  then
+    check_directory "$config_location_gopher"
+    check_directory "$config_location_recipebox"
     recipe_new
   fi
 
-  if [[ ${phlog} -gt 0 ]]
+  if [[ ${arg_phlog} -gt 0 ]]
   then
-    check_directory "$location_phlog"
+    check_directory "$config_location_gopher"
+    check_directory "$config_location_phlog"
     phlog_new
   fi
 }
