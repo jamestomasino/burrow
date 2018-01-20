@@ -285,7 +285,7 @@ function main() {
     fi
   done
 
-  if [[ $config_custom_editor ]]
+  if [[ $config_custom_editor != false ]]
   then
     editor=$config_custom_editor
   fi
