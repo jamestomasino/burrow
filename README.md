@@ -45,7 +45,7 @@ _`man burrow` or `burrow -h` for more information._
 
 ## Config
 
-`burrow` supports the following locations to define its configuration:
+The following locations are available for configuration:
 
 1) `$HOME/.config/burrow/config`
 2) `$HOME/.config/burrow`
@@ -57,12 +57,12 @@ locations will use the last assigned value.
 The following options are available (defaults shown):
 
 ```bash
-location_gopher="$HOME/gopher"
-location_phlog="$HOME/gopher/phlog"
-location_recipebox="$HOME/gopher/recipebox"
-git_commit=false
-git_push=false
-custom_editor=false
+config_location_gopher="$HOME/gopher"
+config_location_phlog="$HOME/gopher/phlog"
+config_location_recipebox="$HOME/gopher/recipebox"
+config_git_commit=false
+config_git_push=false
+config_custom_editor=false
 ```
 
 _Note: This file is a valid Bash script and will be sourced upon load._
