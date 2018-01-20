@@ -32,13 +32,21 @@ ARGUMENTS (multiple allowed):
 phlog         - create new phlog entry
 recipe        - add new recipe to box
 create-config - create a default configuration file
-update-git    - pulls gopher git repo if exists
+update-git    - silently pulls gopher git repo if it exists
 
 OPTIONAL FLAGS:
 help    [-h]  - show this help
 verbose [-v]  - verbose logging
 
 END
+}
+
+pushd () {
+  command pushd "$@" 2>/dev/null 1>&2
+}
+
+popd () {
+  command popd 2>/dev/null 1>&2
 }
 
 function parseopts() {
@@ -84,7 +92,7 @@ function day_suffix() {
   esac
 }
 
-function update_gopher() {
+function update_gopher_date() {
   sed --in-place='' "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${config_location_gopher}/gophermap"
 }
 
@@ -129,7 +137,7 @@ function recipe_new() {
     $editor "$post_path"
     echo -e "0$title\t$(basename "$post_path")\n$(cat "${config_location_recipebox}/gophermap")" > "${config_location_recipebox}/gophermap"
     sort -fo "${config_location_recipebox}/gophermap" "${config_location_recipebox}/gophermap"
-    update_gopher
+    update_gopher_date
 
     if [[ $config_post_recipebox_command != "" ]]
     then
@@ -197,7 +205,7 @@ function phlog_new() {
     rm "$links"
 
     echo -e "1$(date +%Y-%m-%d) - $title\t$(basename "$post_dir")\n$(cat "${config_location_phlog}/gophermap")" > "${config_location_phlog}/gophermap"
-    update_gopher
+    update_gopher_date
 
     if [[ $config_post_phlog_command != "" ]]
     then
