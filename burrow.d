@@ -1,14 +1,14 @@
+#!/usr/bin/env bash
+
 _burrow()
 {
-  local cur prev opts
-  COMPREPLY=()
-  cur="${COMP_WORDS[COMP_CWORD]}"
-  prev="${COMP_WORDS[COMP_CWORD-1]}"
-  opts="phlog recipe create-config update-git -v -h"
+  # Get basic autocomplete commands from the function itself
+  local helplist
+  helplist=$(burrow shortlist)
 
-  if [[ ${cur} == -* ]] ; then
-      COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-      return 0
-  fi
+  # Combine all the lists for autocomplete
+  local cur
+  cur=${COMP_WORDS[COMP_CWORD]}
+  COMPREPLY=( $( compgen -W "$helplist" -- "$cur" ) )
 }
 complete -F _burrow burrow

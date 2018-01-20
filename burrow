@@ -75,6 +75,10 @@ function parseargs() {
         show_help
         exit 0
         ;;
+      "SHORTLIST")
+        echo "phlog recipe create-config update-git"
+        exit 0
+        ;;
       "PHLOG") arg_phlog=1 ;;
       "RECIPE") arg_recipe=1 ;;
       "CREATE-CONFIG") arg_create_config=1 ;;
