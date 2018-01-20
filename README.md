@@ -41,7 +41,7 @@ a configuration file, but it provides you a starting point for customization.
 
 - `update-git` is appropriate for cron jobs to keep the gopher hole in sync.
 
-View the manual or `burrow -h` for more information.
+_`man burrow` or `burrow -h` for more information._
 
 ## Config
 
