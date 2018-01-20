@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# v0.1.0
+# v1.0.0rc
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 editor=${EDITOR:-vi}
