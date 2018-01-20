@@ -107,6 +107,11 @@ function recipe_new() {
     sort -fo "${location_recipebox}/gophermap" "${location_recipebox}/gophermap"
     update_gopher
 
+    if [[ $post_recipebox_command != "" ]]
+    then
+      $post_recipebox_command
+    fi
+
     if [[ $git_commit -gt 0 ]]
     then
       pushd "$location_gopher"
@@ -167,6 +172,11 @@ function phlog_new() {
 
     echo -e "1$(date +%Y-%m-%d) - $title\t$(basename $post_dir)\n$(cat "${location_phlog}/gophermap")" > "${location_phlog}/gophermap"
     update_gopher
+
+    if [[ $post_phlog_command != "" ]]
+    then
+      $post_phlog_command
+    fi
 
     if [[ $git_commit -gt 0 ]]
     then
