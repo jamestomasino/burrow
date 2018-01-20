@@ -140,6 +140,8 @@ function recipe_new() {
     fi
 
     $editor "$post_path"
+
+    echo "Updating recipebox listing"
     echo -e "0$title\t$(basename "$post_path")\n$(cat "${config_location_recipebox}/gophermap")" > "${config_location_recipebox}/gophermap"
     sort -fo "${config_location_recipebox}/gophermap" "${config_location_recipebox}/gophermap"
 
@@ -147,16 +149,19 @@ function recipe_new() {
 
     if [[ $config_post_recipebox_command != "" ]]
     then
+      echo "Running post-recipe command"
       $config_post_recipebox_command
     fi
 
     if [[ $config_git_commit != false ]]
     then
+      echo "Committing to git repository"
       pushd "$config_location_gopher"
       git add "${config_location_recipebox}/gophermap" "${post_path}" "${config_location_gopher}/gophermap"
       git commit -m "Recipe: $title"
       if [[ $config_git_push != false ]]
       then
+        echo "Pushing to git remote"
         git pull
         git push
       fi
