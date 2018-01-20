@@ -147,7 +147,7 @@ function phlog_new() {
       mkdir -p "$post_dir"
       echo "----------------------------------------" >> "$post_path"
       echo "$title"                                   >> "$post_path"
-      echo "$(date +"%B %d$(DaySuffix), %Y")"         >> "$post_path"
+      echo "$(date +"%B %d$(day_suffix), %Y")"        >> "$post_path"
       echo "----------------------------------------" >> "$post_path"
       echo ""                                         >> "$post_path"
       echo ""                                         >> "$post_path"
