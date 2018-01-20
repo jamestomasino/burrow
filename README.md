@@ -19,12 +19,11 @@
 ## Usage
 
 ```bash
-man burrow                # see full instructions
-burrow -h                 # show help
-
-burrow -p <title>         # create new phlog post
-burrow -r <recipe_title>  # add new recipe to box
+burrow phlog       # create new phlog post
+burrow recipe      # add new recipe to box
 ```
+
+View the manual for more information.
 
 ## Config
 
@@ -39,6 +38,9 @@ In either location, the following options are available and show their defaults:
 location_gopher = "$HOME/gopher"
 location_phlog = "$HOME/gopher/phlog"
 location_recipebox = "$HOME/gopher/recipebox"
+git_commit = false
+git_push = false
+custom_editor = false
 ```
 
 ## Contributing
