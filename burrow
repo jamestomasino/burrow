@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 shopt -s extglob
+version="v0.1.0"
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 editor=${EDITOR:-vi}
 location_gopher="$HOME/gopher"
@@ -195,17 +196,8 @@ function main() {
   do
     if [[ -f $configfile ]]
     then
-      while IFS='= ' read lhs rhs
-      do
-        if [[ $lhs != *( )#* ]]
-        then
-          case $lhs in
-            "location_gopher"|"location_recipebox"|"location_phlog"|"git_commit"|"git_push"|"custom_editor")
-              declare $lhs=$rhs
-              ;;
-          esac
-        fi
-      done < "$configfile"
+      source "$configfile"
+      echo "$configfile"
     fi
   done
 
