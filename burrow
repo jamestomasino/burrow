@@ -146,7 +146,7 @@ function recipe_new() {
   fi
 }
 
-function recipe_new() {
+function phlog_new() {
   read -p "Enter a title for your post: " title
   if [[ $title == "" ]]
   then
