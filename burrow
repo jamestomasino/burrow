@@ -1,42 +1,66 @@
 #!/usr/bin/env bash
 
 shopt -s extglob
-configfile="/path/to/file"
+configfiles="$HOME/.config/burrow $HOME/.burrow"
+editor=${EDITOR:-vi}
+location_gopher="${location_gopher}"
+location_recipebox="${location_gopher}/recipebox"
+location_phlog="${location_gopher}/phlog"
+custom_editor=""
+git_commit=0
+git_push=0
+verbose=0
+recipe=0
+phlog=0
 
 function read_config() {
-  while IFS='= ' read lhs rhs
+  for configfile in $configfiles
   do
-    if [[ $lhs != *( )#* ]]
+    if [[ -f $configfile ]]
     then
-      # Specify test conditions for settings here
-      declare $lhs=$rhs
+      while IFS='= ' read lhs rhs
+      do
+        if [[ $lhs != *( )#* ]]
+        then
+          case $lhs in
+            "location_gopher"|"location_recipebox"|"location_phlog"|"git_commit"|"git_push"|"custom_editor")
+              declare $lhs=$rhs
+              ;;
+          esac
+        fi
+      done < "$configfile"
     fi
-  done < "$configfile"
+  done
+
+  if [[ $custom_editor ]]
+  then
+    editor=$custom_editor
+  fi
 }
 
 function show_help() {
   cat > /dev/stdout << END
-${0} [-h]
-
-REQUIRED ARGS:
-
+${0} [-h] [phlog|-p] [recipe|-r]
 
 OPTIONAL ARGS:
--h - show this help
--v - verbose logging
+help    [-h] - show this help
+verbose [-v] - verbose logging
+recipe  [-r] - add or edit a recipe
+phlog   [-p] - post to phlog
 
 END
 }
 
 function parseopts() {
-  while getopts ":hv" opt
+  while getopts ":hvr" opt
   do
     case "${opt}" in
       h)
         show_help
         exit 0
         ;;
-      v) VERBOSE=1 ;;
+      v) verbose=1 ;;
+      r) recipe=1 ;;
       *)
         echo "Invalid option. Try -h for help."
         exit 1
@@ -46,19 +70,160 @@ function parseopts() {
 }
 
 function parseargs() {
-  for p in "$@"
+  for arg in "$@"
   do
-    args+=("$p")
+    argc=${arg^^}
+    case $argc in
+      "HELP")
+        show_help
+        exit 0
+        ;;
+      "VERBOSE") verbose=1 ;;
+      "PHLOG") phlog=1 ;;
+      "RECIPE") recipe=1 ;;
+    esac
   done
+}
+
+function day_suffix() {
+  case $(date +%d) in
+    01|1|21|31) echo "st";;
+    02|2|22)    echo "nd";;
+    03|3|23)    echo "rd";;
+    *)          echo "th";;
+  esac
+}
+
+function update_gopher() {
+  sed --in-place='' "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${location_gopher}/gophermap"
+}
+
+function recipe_new() {
+  read -p "What is the name of your recipe: " title
+  if [[ $title == "" ]]
+  then
+    echo "Cancelled."
+    exit 0
+  fi
+
+  title_slug=$(echo ${title} | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr A-Z a-z)
+  post_path="${location_recipebox}/$title_slug.txt"
+
+  if [[ -f $post_path ]]
+  then
+    echo "$post_path already exists"
+    $editor $post_path
+  else
+    if [[ -f "${location_recipebox}/.template" ]]
+    then
+      cat "${location_recipebox}/.template" > "$post_path"
+    else
+      echo "Creating $post_path"
+      echo "----------------------------------------" >> "$post_path"
+      echo "$title"                                   >> "$post_path"
+      echo "----------------------------------------" >> "$post_path"
+      echo ""                                         >> "$post_path"
+      echo ""                                         >> "$post_path"
+    fi
+
+    $editor $post_path
+    echo -e "0$title\t$(basename $post_path)\n$(cat "${location_recipebox}/gophermap")" > "${location_recipebox}/gophermap"
+    sort -fo "${location_recipebox}/gophermap" "${location_recipebox}/gophermap"
+    update_gopher
+
+    if [[ $git_commit -gt 0 ]]
+    then
+      pushd "$location_gopher"
+      git add "${location_recipebox}/gophermap" "${post_path}" "${location_gopher}/gophermap"
+      git commit -m "Recipe: $title"
+      if [[ $git_push -gt 0 ]]
+      then
+        git pull
+        git push
+      fi
+      popd
+    fi
+  fi
+}
+
+function recipe_new() {
+  read -p "Enter a title for your post: " title
+  if [[ $title == "" ]]
+  then
+    echo "Cancelled."
+    exit 0
+  fi
+
+  title_slug=$(echo ${title} | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr A-Z a-z)
+  post_dir="${location_phlog}/$(date +%Y%m%d)-$title_slug"
+  post_path="$post_dir/gophermap"
+
+  if [[ -f $post_path ]]
+  then
+    echo "$post_path already exists"
+    $editor $post_path
+  else
+    if [[ -f "${location_phlog}/.template" ]]
+    then
+      cat "${location_phlog}/.template" > "$post_path"
+    else
+      echo "Creating $post_path"
+      mkdir -p "$post_dir"
+      echo "----------------------------------------" >> "$post_path"
+      echo "$title"                                   >> "$post_path"
+      echo "$(date +"%B %d$(DaySuffix), %Y")"         >> "$post_path"
+      echo "----------------------------------------" >> "$post_path"
+      echo ""                                         >> "$post_path"
+      echo ""                                         >> "$post_path"
+      echo ""                                         >> "$post_path"
+      echo "Links:"                                   >> "$post_path"
+      echo ""                                         >> "$post_path"
+    fi
+
+    $editor $post_path
+
+    links="$post_dir/links"
+    sed -n '/^Links:$/,$p' $post_path | tail -n +2 > $links
+    sed -i '/^Links:$/,$d' $post_path
+    sed -i 's/^/ /' $post_path
+    cat "$links" >> $post_path
+    rm "$links"
+
+    echo -e "1$(date +%Y-%m-%d) - $title\t$(basename $post_dir)\n$(cat "${location_phlog}/gophermap")" > "${location_phlog}/gophermap"
+    update_gopher
+
+    if [[ $git_commit -gt 0 ]]
+    then
+      pushd "$location_gopher"
+      git add "${location_phlog}/gophermap" "${post_path}" "${location_gopher}/gophermap"
+      git commit -m "Phlog: $title"
+      if [[ $git_push -gt 0 ]]
+      then
+        git pull
+        git push
+      fi
+      popd
+    fi
+  fi
 }
 
 function main() {
   parseopts "$@"
   parseargs "${@:$?}"
 
-  if [[ ${VERBOSE} -gt 0 ]]
+  if [[ ${verbose} -gt 0 ]]
   then
     set -x
+  fi
+
+  if [[ ${recipe} -gt 0 ]]
+  then
+    recipe_new
+  fi
+
+  if [[ ${phlog} -gt 0 ]]
+  then
+    phlog_new
   fi
 }
 
