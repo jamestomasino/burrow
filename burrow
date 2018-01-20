@@ -97,6 +97,7 @@ function day_suffix() {
 }
 
 function update_gopher_date() {
+  echo "Updating gopher last modified date"
   sed --in-place='' "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${config_location_gopher}/gophermap"
 }
 
@@ -201,28 +202,34 @@ function phlog_new() {
 
     $editor "$post_path"
 
-    links="$post_dir/links"
+    echo "Processing phlog for links and autoindenting"
+    links="${post_dir}/links"
     sed -n '/^Links:$/,$p' "$post_path" | tail -n +2 > "$links"
-    sed -i '/^Links:$/,$d' "$post_path"
-    sed -i 's/^/ /' "$post_path"
+    sed --in-place='' '/^Links:$/,$d' "$post_path"
+    sed --in-place='' 's/^/ /' "$post_path"
     cat "$links" >> "$post_path"
     rm "$links"
+
+    echo "Updating phlog listing"
 
     echo -e "1$(date +%Y-%m-%d) - $title\t$(basename "$post_dir")\n$(cat "${config_location_phlog}/gophermap")" > "${config_location_phlog}/gophermap"
     update_gopher_date
 
     if [[ $config_post_phlog_command != "" ]]
     then
+      echo "Running post-phlog command"
       $config_post_phlog_command
     fi
 
     if [[ $config_git_commit -gt 0 ]]
     then
+      echo "Committing to git repository"
       pushd "$config_location_gopher"
       git add "${config_location_phlog}/gophermap" "${post_path}" "${config_location_gopher}/gophermap"
       git commit -m "Phlog: $title"
       if [[ $config_git_push -gt 0 ]]
       then
+        echo "Pushing to git remote"
         git pull
         git push
       fi
