@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 
 version="v1.0.0rc"
+
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 editor=${EDITOR:-vi}
-
-arg_options=hvd
-arg_longoptions=help,version,debug
 
 # vars from config
 config_location_gopher="$HOME/gopher"
@@ -22,35 +20,38 @@ config_git_push=false
 flag_debug=0
 
 # vars from args
+arg_options=hvd
+arg_longoptions=help,version,debug
 arg_recipe=0
 arg_phlog=0
 arg_create_config=0
 arg_update_git=0
 
-function show_help() {
-  cat > /dev/stdout << END
-${0} [-hvd] [--help] [--version] [--debug] <arguments>
-
-ARGUMENTS (multiple allowed):
-phlog         - create new phlog entry
-recipe        - add new recipe to box
-create-config - create a default configuration file
-update-git    - silently pulls gopher git repo if it exists
-
-OPTIONAL FLAGS:
---help|-h     - show this help
---version|-v  - show current version info
---debug|-d    - debug mode
-
-END
-}
-
+# silence directory movements
 pushd () {
   command pushd "$@" 2>/dev/null 1>&2
 }
 
 popd () {
   command popd 2>/dev/null 1>&2
+}
+
+function show_help() {
+  cat > /dev/stdout << END
+burrow [options] [commands]
+
+COMMANDS:
+      phlog                   Create new phlog entry
+      recipe                  Add new recipe to box
+      create-config           Create a default configuration file
+      update-git              Silently pulls gopher git repo if it exists
+
+OPTIONAL FLAGS:
+  -h, --help                  Show this help
+  -v, --version               Show current version info
+  -d, --debug                 Debug mode
+
+END
 }
 
 function parse_input() {
@@ -93,25 +94,25 @@ function parse_input() {
     esac
   done
 
-  if [[ $# -lt 1 ]]; then
+  if [[ $# -lt 1 ]]
+  then
     exit 0
   fi
 
   for arg in "$@"
   do
-    argc=${arg^^}
+    argc=${arg,,}
     case $argc in
-      "SHORTLIST")
+      "shortlist")
         echo "phlog recipe create-config update-git"
         exit 0
         ;;
-      "PHLOG") arg_phlog=1 ;;
-      "RECIPE") arg_recipe=1 ;;
-      "CREATE-CONFIG") arg_create_config=1 ;;
-      "UPDATE-GIT") arg_update_git=1 ;;
+      "phlog") arg_phlog=1 ;;
+      "recipe") arg_recipe=1 ;;
+      "create-config") arg_create_config=1 ;;
+      "update-git") arg_update_git=1 ;;
     esac
   done
-
 }
 
 function day_suffix() {
@@ -171,7 +172,6 @@ function recipe_new() {
     echo "Updating recipebox listing"
     echo -e "0$title\t$(basename "$post_path")\n$(cat "${config_location_recipebox}/gophermap")" > "${config_location_recipebox}/gophermap"
     sort -fo "${config_location_recipebox}/gophermap" "${config_location_recipebox}/gophermap"
-
     update_gopher_date
 
     if [[ $config_post_recipebox_command != "" ]]
