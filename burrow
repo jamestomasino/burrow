@@ -112,6 +112,7 @@ function parse_input() {
       "recipe") arg_recipe=1 ;;
       "create-config") arg_create_config=1 ;;
       "update-git") arg_update_git=1 ;;
+      *) echo "Unknown command: $arg";;
     esac
   done
 }
