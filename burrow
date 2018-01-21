@@ -97,11 +97,6 @@ function parse_input() {
     esac
   done
 
-  if [[ $# -lt 1 ]]
-  then
-    exit 0
-  fi
-
   for arg in "$@"
   do
     argc=${arg,,}
@@ -306,28 +301,28 @@ function update_git() {
 function main() {
   parse_input "$@"
 
-  if [[ ${arg_shortlist} ]]
+  if [[ $arg_shortlist -gt 0 ]]
   then
     echo "phlog recipe create-config update-git"
     exit 0
   fi
 
-  if [[ ${flag_version} -gt 0 ]]
+  if [[ $flag_version -gt 0 ]]
   then
     echo "$version"
   fi
 
-  if [[ ${flag_help} -gt 0 ]]
+  if [[ $flag_help -gt 0 ]]
   then
     show_help
   fi
 
-  if [[ ${flag_debug} -gt 0 ]]
+  if [[ $flag_debug -gt 0 ]]
   then
     set -x
   fi
 
-  if [[ ${arg_create_config} -gt 0 ]]
+  if [[ $arg_create_config -gt 0 ]]
   then
     create_config
   fi
