@@ -5,6 +5,9 @@ shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 editor=${EDITOR:-vi}
 
+arg_options=hvd
+arg_longoptions=help,version,debug
+
 # vars from config
 config_location_gopher="$HOME/gopher"
 config_location_recipebox="${config_location_gopher}/recipebox"
@@ -26,7 +29,7 @@ arg_update_git=0
 
 function show_help() {
   cat > /dev/stdout << END
-${0} [-hv] <arguments>
+${0} [-hvd] [--help] [--version] [--debug] <arguments>
 
 ARGUMENTS (multiple allowed):
 phlog         - create new phlog entry
@@ -35,9 +38,9 @@ create-config - create a default configuration file
 update-git    - silently pulls gopher git repo if it exists
 
 OPTIONAL FLAGS:
--h  - show this help
--v  - show current version info
--d  - debug mode
+--help|-h     - show this help
+--version|-v  - show current version info
+--debug|-d    - debug mode
 
 END
 }
@@ -50,33 +53,54 @@ popd () {
   command popd 2>/dev/null 1>&2
 }
 
-function parseopts() {
-  while getopts ":hvd" opt
-  do
-    case "${opt}" in
-      h)
+function parse_input() {
+  getopt --test > /dev/null
+  if [[ $? -ne 4 ]]
+  then
+    echo "I'm sorry, \`getopt --test\` failed in this environment."
+    exit 1
+  fi
+
+  parsed=$(getopt --options=$arg_options --longoptions=$arg_longoptions --name "$0" -- "$@")
+  if [[ $? -ne 0 ]]; then
+    exit 2
+  fi
+
+  eval set -- "$parsed"
+
+  while true; do
+    case "$1" in
+      -h|--help)
         show_help
-        exit 0
+        shift
         ;;
-      d) flag_debug=1 ;;
-      v) echo "$version" ;;
+      -v|--version)
+        echo "$version"
+        shift
+        ;;
+      -d|--debug)
+        flag_debug=1
+        shift
+        ;;
+      --)
+        shift
+        break
+        ;;
       *)
-        echo "Invalid option. Try -h for help."
-        exit 1
+        echo "Internal error: $1"
+        exit 3
+        ;;
     esac
   done
-  return $OPTIND
-}
 
-function parseargs() {
+  if [[ $# -lt 1 ]]; then
+    exit 0
+  fi
+
   for arg in "$@"
   do
     argc=${arg^^}
     case $argc in
-      "HELP")
-        show_help
-        exit 0
-        ;;
       "SHORTLIST")
         echo "phlog recipe create-config update-git"
         exit 0
@@ -87,6 +111,7 @@ function parseargs() {
       "UPDATE-GIT") arg_update_git=1 ;;
     esac
   done
+
 }
 
 function day_suffix() {
@@ -279,8 +304,7 @@ function update_git() {
 }
 
 function main() {
-  parseopts "$@"
-  parseargs "${@:$?}"
+  parse_input "$@"
 
   if [[ ${flag_debug} -gt 0 ]]
   then
