@@ -1,4 +1,4 @@
-PREFIX ?= /usr
+PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 MANDIR ?= $(PREFIX)/share/man
 CPLDIR ?= $$(pkg-config --variable=completionsdir bash-completion)
