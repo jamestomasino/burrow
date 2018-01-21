@@ -10,20 +10,22 @@ editor=${EDITOR:-vi}
 config_location_gopher="$HOME/gopher"
 config_location_recipebox="${config_location_gopher}/recipebox"
 config_location_phlog="${config_location_gopher}/phlog"
-config_custom_editor=""
 config_post_phlog_command=""
 config_post_recipebox_command=""
 config_git_commit=false
 config_git_push=false
+config_autoindent=true
+config_custom_editor=""
 
 # vars from flags
 flag_debug=0
 flag_version=0
 flag_help=0
+flag_noautoindent=0
 
 # vars from args
 arg_options=hvd
-arg_longoptions=help,version,debug
+arg_longoptions=help,version,debug,noautoindent
 arg_shortlist=0
 arg_recipe=0
 arg_phlog=0
@@ -84,6 +86,10 @@ function parse_input() {
         ;;
       -d|--debug)
         flag_debug=1
+        shift
+        ;;
+      --noautoindent)
+        flag_noautoindent=1
         shift
         ;;
       --)
@@ -230,13 +236,16 @@ function phlog_new() {
 
     $editor "$post_path"
 
-    echo "Processing phlog for links and autoindenting"
-    links="${post_dir}/links"
-    sed -n '/^Links:$/,$p' "$post_path" | tail -n +2 > "$links"
-    sed --in-place='' '/^Links:$/,$d' "$post_path"
-    sed --in-place='' 's/^/ /' "$post_path"
-    cat "$links" >> "$post_path"
-    rm "$links"
+    if [[ $config_autoindent == true ]] && [[ $flag_noautoindent == 0 ]]
+    then
+      echo "Processing phlog for links and autoindenting"
+      links="${post_dir}/links"
+      sed -n '/^Links:$/,$p' "$post_path" | tail -n +2 > "$links"
+      sed --in-place='' '/^Links:$/,$d' "$post_path"
+      sed --in-place='' 's/^/ /' "$post_path"
+      cat "$links" >> "$post_path"
+      rm "$links"
+    fi
 
     echo "Updating phlog listing"
     echo -e "1$(date +%Y-%m-%d) - $title\t$(basename "$post_dir")\n$(cat "${config_location_phlog}/gophermap")" > "${config_location_phlog}/gophermap"
@@ -279,6 +288,7 @@ function create_config() {
       echo "config_location_recipebox=\"$HOME/gopher/recipebox\""
       echo "config_git_commit=false"
       echo "config_git_push=false"
+      echo "config_autoindent=true"
       echo "config_custom_editor=false"
     } >> "$config"
   else
@@ -303,7 +313,7 @@ function main() {
 
   if [[ $arg_shortlist -gt 0 ]]
   then
-    echo "phlog recipe create-config update-git"
+    echo "phlog recipe create-config update-git -v -h -d --version --help --debug --noautoindent"
     exit 0
   fi
 

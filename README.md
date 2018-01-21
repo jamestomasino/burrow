@@ -62,6 +62,7 @@ config_location_phlog="$HOME/gopher/phlog"
 config_location_recipebox="$HOME/gopher/recipebox"
 config_git_commit=false
 config_git_push=false
+config_autoindent=true
 config_custom_editor=false
 ```
 
