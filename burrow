@@ -60,13 +60,6 @@ END
 }
 
 function parse_input() {
-  getopt --test > /dev/null
-  if [[ $? -ne 4 ]]
-  then
-    echo "I'm sorry, \`getopt --test\` failed in this environment."
-    exit 1
-  fi
-
   parsed=$(getopt --options=$arg_options --longoptions=$arg_longoptions --name "$0" -- "$@")
   if [[ $? -ne 0 ]]; then
     exit 2
