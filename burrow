@@ -152,8 +152,8 @@ function recipe_new() {
     then
       cat "${config_location_recipebox}/.template" > "$post_path"
     else
+      echo "Creating $post_path"
       {
-        echo "Creating $post_path"
         echo "----------------------------------------"
         echo "$title"
         echo "----------------------------------------"
