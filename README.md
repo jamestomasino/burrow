@@ -7,6 +7,7 @@
 ### Requirements
 * make
 * bash 4+
+* GNU sed (aka, not the default OSX one)
 
 ### Install
 
