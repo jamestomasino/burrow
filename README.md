@@ -58,16 +58,16 @@ locations will use the last assigned value.
 The following options are available (defaults shown):
 
 ```bash
-config_location_gopher="$HOME/gopher"
-config_location_phlog="phlog"
-config_location_recipebox="recipebox"
-config_gopher_server="sdf.org"
-config_gopher_port="70"
-config_gopher_root="/users/username/"
-config_git_commit=false
-config_git_push=false
-config_autoindent=true
-config_custom_editor=false
+config_dir_gopher="$HOME/gopher"       # local path to gopher site
+config_dir_phlog="phlog"               # relative path to phlog
+config_dir_recipebox="recipebox"       # relative path to recipe box
+config_gopher_server="sdf.org"         # server of gopher host
+config_gopher_port="70"                # port of gopher host
+config_gopher_root="/users/username/"  # absolute path on gopher host to gopher site
+config_git_commit=false                # automatically commit changes if git repo
+config_git_push=false                  # automatically push changes if git repo
+config_autoindent=true                 # automatically reformat phlogs with leading spaces
+config_custom_editor=false             # use something other than $EDITOR
 ```
 
 _Note: This file is a valid Bash script and will be sourced upon load._
