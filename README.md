@@ -58,8 +58,11 @@ The following options are available (defaults shown):
 
 ```bash
 config_location_gopher="$HOME/gopher"
-config_location_phlog="$HOME/gopher/phlog"
-config_location_recipebox="$HOME/gopher/recipebox"
+config_location_phlog="phlog"
+config_location_recipebox="recipebox"
+config_gopher_server="sdf.org"
+config_gopher_port="70"
+config_gopher_root="/users/username/"
 config_git_commit=false
 config_git_push=false
 config_autoindent=true
