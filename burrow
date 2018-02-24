@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
 
-version="v1.0.0rc"
+version="v1.1.0"
 
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 editor=${EDITOR:-vi}
 
 # vars from config
-config_location_gopher="$HOME/gopher"
-config_location_recipebox="${config_location_gopher}/recipebox"
-config_location_phlog="${config_location_gopher}/phlog"
+config_dir_gopher="$HOME/gopher/"
+config_dir_recipebox="recipebox"
+config_dir_phlog="phlog"
+config_gopher_server="sdf.org"
+config_gopher_port="70"
+config_gopher_root="/users/username/"
 config_post_phlog_command=""
 config_post_recipebox_command=""
 config_git_commit=false
 config_git_push=false
 config_autoindent=true
-config_custom_editor=""
+config_custom_editor=false
 
 # vars from flags
 flag_debug=0
@@ -121,7 +124,7 @@ function day_suffix() {
 
 function update_gopher_date() {
   echo "Updating gopher last modified date"
-  sed --in-place='' "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${config_location_gopher}/gophermap"
+  sed -i "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${config_dir_gopher}/gophermap"
 }
 
 function check_directory() {
@@ -141,16 +144,16 @@ function recipe_new() {
   fi
 
   title_slug=$(echo "${title}" | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
-  post_path="${config_location_recipebox}/$title_slug.txt"
+  post_path="${config_dir_gopher}${config_dir_recipebox}/$title_slug.txt"
 
   if [[ -f $post_path ]]
   then
     echo "$post_path already exists"
     $editor "$post_path"
   else
-    if [[ -f "${config_location_recipebox}/.template" ]]
+    if [[ -f "${config_dir_gopher}${config_dir_recipebox}/.template" ]]
     then
-      cat "${config_location_recipebox}/.template" > "$post_path"
+      cat "${config_dir_gopher}${config_dir_recipebox}/.template" > "$post_path"
     else
       echo "Creating $post_path"
       {
@@ -165,8 +168,8 @@ function recipe_new() {
     $editor "$post_path"
 
     echo "Updating recipebox listing"
-    echo -e "0$title\t$(basename "$post_path")\n$(cat "${config_location_recipebox}/gophermap")" > "${config_location_recipebox}/gophermap"
-    sort -fo "${config_location_recipebox}/gophermap" "${config_location_recipebox}/gophermap"
+    echo -e "0$title\t${config_gopher_root}${config_dir_recipebox}/$(basename "$post_path")\t${config_gopher_server}\t${config_gopher_port}\n$(cat "${config_dir_gopher}${config_dir_recipebox}/gophermap")" > "${config_dir_gopher}${config_dir_recipebox}/gophermap"
+    sort -fo "${config_dir_gopher}${config_dir_recipebox}/gophermap" "${config_dir_gopher}${config_dir_recipebox}/gophermap"
     update_gopher_date
 
     if [[ $config_post_recipebox_command != "" ]]
@@ -178,8 +181,8 @@ function recipe_new() {
     if [[ $config_git_commit != false ]]
     then
       echo "Committing to git repository"
-      pushd "$config_location_gopher"
-      git add "${config_location_recipebox}/gophermap" "${post_path}" "${config_location_gopher}/gophermap"
+      pushd "$config_dir_gopher"
+      git add "${config_dir_recipebox}/gophermap" "${post_path}" "${config_dir_gopher}/gophermap"
       git commit -m "Recipe: $title"
       if [[ $config_git_push != false ]]
       then
@@ -201,7 +204,7 @@ function phlog_new() {
   fi
 
   title_slug=$(echo "${title}" | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
-  post_dir="${config_location_phlog}/$(date +%Y%m%d)-$title_slug"
+  post_dir="${config_dir_gopher}${config_dir_phlog}/$(date +%Y%m%d)-$title_slug"
   post_path="$post_dir/gophermap"
 
   if [[ -f $post_path ]]
@@ -209,9 +212,9 @@ function phlog_new() {
     echo "$post_path already exists"
     $editor "$post_path"
   else
-    if [[ -f "${config_location_phlog}/.template" ]]
+    if [[ -f "${config_dir_gopher}${config_dir_phlog}/.template" ]]
     then
-      cat "${config_location_phlog}/.template" > "$post_path"
+      cat "${config_dir_gopher}${config_dir_phlog}/.template" > "$post_path"
     else
       echo "Creating $post_path"
       mkdir -p "$post_dir"
@@ -235,14 +238,14 @@ function phlog_new() {
       echo "Processing phlog for links and autoindenting"
       links="${post_dir}/links"
       sed -n '/^Links:$/,$p' "$post_path" | tail -n +2 > "$links"
-      sed --in-place='' '/^Links:$/,$d' "$post_path"
-      sed --in-place='' 's/^/ /' "$post_path"
+      sed -i '/^Links:$/,$d' "$post_path"
+      sed -i 's/^/ /' "$post_path"
       cat "$links" >> "$post_path"
       rm "$links"
     fi
 
     echo "Updating phlog listing"
-    echo -e "1$(date +%Y-%m-%d) - $title\t$(basename "$post_dir")\n$(cat "${config_location_phlog}/gophermap")" > "${config_location_phlog}/gophermap"
+    echo -e "1$(date +%Y-%m-%d) - $title\t${config_gopher_root}${config_dir_phlog}/$(basename "$post_dir")\t${config_gopher_server}\t${config_gopher_port}\n$(cat "${config_dir_gopher}${config_dir_phlog}/gophermap")" > "${config_dir_gopher}${config_dir_phlog}/gophermap"
 
     update_gopher_date
 
@@ -255,8 +258,8 @@ function phlog_new() {
     if [[ $config_git_commit != false ]]
     then
       echo "Committing to git repository"
-      pushd "$config_location_gopher"
-      git add "${config_location_phlog}/gophermap" "${post_path}" "${config_location_gopher}/gophermap"
+      pushd "$config_dir_gopher"
+      git add "${config_dir_phlog}/gophermap" "${post_path}" "${config_dir_gopher}/gophermap"
       git commit -m "Phlog: $title"
       if [[ $config_git_push != false ]]
       then
@@ -277,10 +280,13 @@ function create_config() {
     config="$HOME/.config/burrow/config"
     mkdir -p "$(dirname "$config")"
     {
-      echo "config_location_gopher=\"$HOME/gopher\""
-      echo "config_location_phlog=\"$HOME/gopher/phlog\""
-      echo "config_location_recipebox=\"$HOME/gopher/recipebox\""
+      echo "config_dir_gopher=\"$HOME/gopher/\""
+      echo "config_dir_phlog=\"phlog\""
+      echo "config_dir_recipebox=\"recipebox\""
       echo "config_git_commit=false"
+      echo "config_gopher_server=\"sdf.org\""
+      echo "config_gopher_port=\"70\""
+      echo "config_gopher_root=\"/users/tomasino/\""
       echo "config_git_push=false"
       echo "config_autoindent=true"
       echo "config_custom_editor=false"
@@ -291,7 +297,7 @@ function create_config() {
 }
 
 function update_git() {
-  pushd "$config_location_gopher"
+  pushd "$config_dir_gopher"
   if [[ $? -eq 0 ]] 
   then
     if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]
@@ -351,15 +357,15 @@ function main() {
 
   if [[ ${arg_recipe} -gt 0 ]]
   then
-    check_directory "$config_location_gopher"
-    check_directory "$config_location_recipebox"
+    check_directory "$config_dir_gopher"
+    check_directory "${config_dir_gopher}${config_dir_recipebox}"
     recipe_new
   fi
 
   if [[ ${arg_phlog} -gt 0 ]]
   then
-    check_directory "$config_location_gopher"
-    check_directory "$config_location_phlog"
+    check_directory "$config_dir_gopher"
+    check_directory "${config_dir_gopher}${config_dir_phlog}"
     phlog_new
   fi
 }
