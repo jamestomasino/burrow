@@ -5,9 +5,9 @@
 ## Installation
 
 ### Requirements
-* make
-* bash 4+
-* GNU sed (aka, not the default OSX one)
+* bash 4+ (OSX: `brew install bash`)
+* GNU sed (OSX: `brew install gnu-sed --with-default-names`)
+* GNU getopt (OSX: `brew install gnu-getopt --with-default-names`)
 
 ### Install
 
