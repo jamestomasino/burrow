@@ -65,7 +65,7 @@ END
 function parse_input() {
   parsed=$(getopt --options=$arg_options --longoptions=$arg_longoptions --name "$0" -- "$@")
   if [[ $? -ne 0 ]]; then
-    exit 2
+    die "Invalid input" 2
   fi
 
   eval set -- "$parsed"
@@ -93,8 +93,7 @@ function parse_input() {
         break
         ;;
       *)
-        echo "Internal error: $1"
-        exit 3
+        die "Internal error: $1" 3
         ;;
     esac
   done
@@ -131,8 +130,18 @@ function update_gopher_date() {
 function check_directory() {
   if [[ ! -d "$1" ]]
   then
-    echo "Missing directory: $1 aborting."
-    exit 1
+    die "Missing directory: $1 aborting."
+  fi
+}
+
+function die {
+  if [[ ! -z "$1" ]]; then
+    echo "$1";
+    if [[ "$2" =~ /^[0-9]+$/ ]] ; then
+      exit "$2"
+    else
+      exit 1
+    fi
   fi
 }
 
@@ -153,11 +162,13 @@ function make_post() {
   use_date="$4"
   update_root="$5"
 
+  check_directory "$config_dir_gopher"
+  check_directory "${config_dir_gopher}${type}"
+
   read -r -e -p "$query" title
   if [[ $title == "" ]]
   then
-    echo "Cancelled."
-    exit 0
+    die "Cancelled." 0
   fi
 
   type_gophermap="${config_dir_gopher}${type}/gophermap"
@@ -216,7 +227,7 @@ function make_post() {
       if [[ $config_autoindent == true ]] && [[ $flag_noautoindent == 0 ]]
       then
         echo "Processing for links and autoindenting"
-        temp_links=$(mktemp -t "$(basename "$0").links.XXXXXXX") || exit 1
+        temp_links=$(mktemp -t "$(basename "$0").links.XXXXXXX") || die "Failed to create temporary file" 1
         sed -n '/^Links:$/,$p' "$post_file" | tail -n +2 > "$temp_links"
         sed -i '/^Links:$/,$d' "$post_file"
         sed -i 's/^/ /' "$post_file"
@@ -226,7 +237,7 @@ function make_post() {
     fi
 
     echo "Updating $type"
-    temp_gophermap=$(mktemp -t "$(basename "$0").gophermap.XXXXXXX") || exit 1
+    temp_gophermap=$(mktemp -t "$(basename "$0").gophermap.XXXXXXX") || die "Failed to create temporary file" 1
 
     if $use_gophermap; then
       if $use_date; then
@@ -279,18 +290,6 @@ function make_post() {
   fi
 }
 
-function topic_new() {
-  make_post "What topic? " "$config_dir_topics" true false true
-}
-
-function recipe_new() {
-  make_post "What is the name of your recipe? " "$config_dir_recipebox" false false true
-}
-
-function phlog_new() {
-  make_post "Enter a title for your post: " "$config_dir_phlog" true true true
-}
-
 function create_config() {
   if [[ ! -f "$HOME/.config/burrow/config" ]] &&
     [[ ! -f "$HOME/.config/burrow" ]] &&
@@ -332,8 +331,7 @@ function main() {
 
   if [[ $arg_shortlist -gt 0 ]]
   then
-    echo "phlog topic recipe create-config update-git -v -h -d --version --help --debug --noautoindent"
-    exit 0
+    die "phlog topic recipe create-config update-git -v -h -d --version --help --debug --noautoindent" 0
   fi
 
   if [[ $flag_version -gt 0 ]]
@@ -371,23 +369,17 @@ function main() {
 
   if [[ ${arg_recipe} -gt 0 ]]
   then
-    check_directory "$config_dir_gopher"
-    check_directory "${config_dir_gopher}${config_dir_recipebox}"
-    recipe_new
+    make_post "What is the name of your recipe? " "$config_dir_recipebox" false false true
   fi
 
   if [[ ${arg_topic} -gt 0 ]]
   then
-    check_directory "$config_dir_gopher"
-    check_directory "${config_dir_gopher}${config_dir_topics}"
-    topic_new
+    make_post "What is the name of your topic? " "$config_dir_topics" true false true
   fi
 
   if [[ ${arg_phlog} -gt 0 ]]
   then
-    check_directory "$config_dir_gopher"
-    check_directory "${config_dir_gopher}${config_dir_phlog}"
-    phlog_new
+    make_post "Enter a title for your post: " "$config_dir_phlog" true true true
   fi
 }
 

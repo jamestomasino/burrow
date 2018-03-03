@@ -1,7 +1,13 @@
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 MANDIR ?= $(PREFIX)/share/man
-CPLDIR ?= $$(pkg-config --variable=completionsdir bash-completion)
+ifneq ($(wildcard /etc/bash_completion.d/.),)
+	CPLDIR ?= /etc/bash_completion.d
+else
+ifneq ($(shell command -v pkg-config 2> /dev/null))
+	CPLDIR ?= $$(pkg-config --variable=completionsdir bash-completion)
+endif
+endif
 
 install:
 	@echo Installing the executable to $(DESTDIR)$(BINDIR)
