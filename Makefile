@@ -10,24 +10,24 @@ endif
 endif
 
 install:
-	@echo Installing the executable to $(DESTDIR)$(BINDIR)
-	@mkdir -p $(DESTDIR)$(BINDIR)
-	@cp -f burrow $(DESTDIR)$(BINDIR)/burrow
-	@chmod 755 $(DESTDIR)$(BINDIR)/burrow
-	@echo Installing the manual page to $(DESTDIR)$(MANDIR)/man1
-	@mkdir -p $(DESTDIR)$(MANDIR)
-	@cp -f burrow.1 $(DESTDIR)$(MANDIR)/man1/burrow.1
-	@chmod 644 $(DESTDIR)$(MANDIR)/man1/burrow.1
-	@echo Installing the command completion to $(DESTDIR)$(CPLDIR)
-	@cp -f burrow.d $(DESTDIR)$(CPLDIR)/burrow
-	@chmod 644 $(DESTDIR)$(CPLDIR)/burrow
+	@echo Installing the executable to $(BINDIR)
+	@mkdir -p $(BINDIR)
+	@cp -f burrow $(BINDIR)/burrow
+	@chmod 755 $(BINDIR)/burrow
+	@echo Installing the manual page to $(MANDIR)/man1
+	@mkdir -p $(MANDIR)
+	@cp -f burrow.1 $(MANDIR)/man1/burrow.1
+	@chmod 644 $(MANDIR)/man1/burrow.1
+	@echo Installing the command completion to $(CPLDIR)
+	@cp -f burrow.d $(CPLDIR)/burrow
+	@chmod 644 $(CPLDIR)/burrow
 
 uninstall:
-	@echo Removing the executable from $(DESTDIR)$(BINDIR)
-	@rm -f $(DESTDIR)$(BINDIR)/burrow
-	@echo Removing the manual page from $(DESTDIR)$(MANDIR)/man1
-	@rm -f $(DESTDIR)$(BINDIR)/man1/burrow.1
-	@echo Removing the command completion from $(DESTDIR)$(CPLDIR)
-	@rm -f $(DESTDIR)$(CPLDIR)/burrow
+	@echo Removing the executable from $(BINDIR)
+	@rm -f $(BINDIR)/burrow
+	@echo Removing the manual page from $(MANDIR)/man1
+	@rm -f $(BINDIR)/man1/burrow.1
+	@echo Removing the command completion from $(CPLDIR)
+	@rm -f $(CPLDIR)/burrow
 
 .PHONY: install uninstall
