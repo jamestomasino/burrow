@@ -11,14 +11,11 @@ config_dir_gopher="$HOME/gopher/"
 config_dir_recipebox="recipebox"
 config_dir_phlog="phlog"
 config_dir_topics="topics"
-
 config_gopher_server="sdf.org"
 config_gopher_port="70"
 config_gopher_root="/users/username/"
-
 config_git_commit=false
 config_git_push=false
-
 config_autoindent=true
 
 # vars from flags

@@ -24,7 +24,8 @@ git repo, but will lack `man` support and command completion._
 
 ```bash
 burrow phlog          # create new phlog post
-burrow recipe         # add new recipe to box
+burrow recipe         # add or update a recipe to box
+burrow topic          # add or update a topic file
 burrow create-config  # generate a default config file
 burrow update-git     # pull latest git repo for gopher dir, if exists
 ```
@@ -36,6 +37,10 @@ by including a `.template` file in your phlog directory.
 - `recipe` will prompt for the name of your recipe, then open it in your default
 `$EDITOR`. By default it will provide you a template, but you can override this
 by including a `.template` file in your recipe box directory.
+
+- `topic` will prompt for the name of the topic, then open it in your default
+`$EDITOR`. By default it will provide you a template, but you can override this
+by including a `.template` file in your topics directory.
 
 - `create-config` gives you the same settings as you have by default without
 a configuration file, but it provides you a starting point for customization.
@@ -61,13 +66,14 @@ The following options are available (defaults shown):
 config_dir_gopher="$HOME/gopher"       # local path to gopher site
 config_dir_phlog="phlog"               # relative path to phlog
 config_dir_recipebox="recipebox"       # relative path to recipe box
+config_dir_topics="topics"             # relative path to topics directory
 config_gopher_server="sdf.org"         # server of gopher host
 config_gopher_port="70"                # port of gopher host
 config_gopher_root="/users/username/"  # absolute path on gopher host to gopher site
 config_git_commit=false                # automatically commit changes if git repo
 config_git_push=false                  # automatically push changes if git repo
-config_autoindent=true                 # automatically reformat phlogs with leading spaces
-config_custom_editor=false             # use something other than $EDITOR
+config_autoindent=true                 # automatically reformat gophermaps with leading spaces
+                                       # and parse links at the end of file
 ```
 
 _Note: This file is a valid Bash script and will be sourced upon load._
