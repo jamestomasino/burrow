@@ -179,7 +179,7 @@ function make_post() {
   else
     post_dir="${config_dir_gopher}${type}"
     post_path="${config_gopher_root}${type}"
-    title_slug=$(sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' "${title}" | tr -s '-' | tr '[:upper:]' '[:lower:]')
+    title_slug=$(echo "${title}" | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
     if $use_date; then
       title_slug="$(date +%Y%m%d)-${title_slug}"
     fi
@@ -283,15 +283,15 @@ function make_post() {
 }
 
 function topic_new() {
-  make_post "What topic?" "$config_dir_topics" false false true
+  make_post "What topic? " "$config_dir_topics" true false true
 }
 
 function recipe_new() {
-  make_post "What is the name of your recipe?" "$config_dir_recipebox" false false true
+  make_post "What is the name of your recipe? " "$config_dir_recipebox" false false true
 }
 
 function phlog_new() {
-  make_post "Enter a title for your post:" "$config_dir_phlog" true true true
+  make_post "Enter a title for your post: " "$config_dir_phlog" true true true
 }
 
 function create_config() {
