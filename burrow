@@ -17,6 +17,8 @@ config_gopher_root="/users/username/"
 config_git_commit=false
 config_git_push=false
 config_autoindent=true
+config_autofold=false
+config_foldwidth=66
 
 # vars from flags
 flag_debug=0
@@ -134,7 +136,7 @@ function check_directory() {
   fi
 }
 
-function die {
+function die() {
   if [[ ! -z "$1" ]]; then
     echo "$1";
     if [[ "$2" =~ /^[0-9]+$/ ]] ; then
@@ -145,15 +147,28 @@ function die {
   fi
 }
 
-function finish {
+function finish() {
   if [[ -f "$temp_gophermap" ]]; then
     rm "$temp_gophermap"
   fi
   if [[ -f "$temp_links" ]]; then
     rm "$temp_links"
   fi
+  if [[ -f "$temp_fold" ]]; then
+    rm "$temp_fold"
+  fi
 }
 trap finish EXIT
+
+function autofold() {
+  file="$1"
+  if $config_autofold; then
+    temp_fold=$(mktemp -t "$(basename "$0").fold.XXXXXXX") || die "Failed to create temporary file" 1
+    fold -s -w "$config_foldwidth" "$file" > "$temp_fold"
+    cat "$temp_fold" > "$file"
+    rm "$temp_fold"
+  fi
+}
 
 function make_post() {
   query="$1"
@@ -230,10 +245,13 @@ function make_post() {
         temp_links=$(mktemp -t "$(basename "$0").links.XXXXXXX") || die "Failed to create temporary file" 1
         sed -n '/^Links:$/,$p' "$post_file" | tail -n +2 > "$temp_links"
         sed -i '/^Links:$/,$d' "$post_file"
+        autofold "$post_file"
         sed -i 's/^/ /' "$post_file"
         cat "$temp_links" >> "$post_file"
         rm "$temp_links"
       fi
+    else
+      autofold "$post_file"
     fi
 
     echo "Updating $type"
@@ -308,6 +326,8 @@ function create_config() {
       echo "config_git_commit=false"
       echo "config_git_push=false"
       echo "config_autoindent=true"
+      echo "config_autofold=false"
+      echo "config_foldwidth=66"
     } >> "$config"
   else
     echo "Configuration already exists. Abort."

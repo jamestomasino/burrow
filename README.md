@@ -74,6 +74,8 @@ config_git_commit=false                # automatically commit changes if git rep
 config_git_push=false                  # automatically push changes if git repo
 config_autoindent=true                 # automatically reformat gophermaps with leading spaces
                                        # and parse links at the end of file
+config_autofold=false                  # automatically break lines at specific width
+config_foldwidth=66                    # width of line used for autofold
 ```
 
 _Note: This file is a valid Bash script and will be sourced upon load._
