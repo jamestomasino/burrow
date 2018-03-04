@@ -16,6 +16,8 @@
 _Note: On systems without admin access the binary can be run directly from the
 git repo, but will lack `man` support and command completion._
 
+See the [Getting Started](https://github.com/jamestomasino/burrow/wiki/Getting-Started) guide.
+
 ### Uninstall
 
 `sudo make uninstall`
