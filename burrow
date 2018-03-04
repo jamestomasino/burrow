@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v1.2.1"
+version="v1.2.3"
 
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
@@ -14,6 +14,12 @@ config_dir_topics="topics"
 config_gopher_server="sdf.org"
 config_gopher_port="70"
 config_gopher_root="/users/username/"
+config_phlog_gophermap=true
+config_phlog_usedate=true
+config_recipebox_gophermap=false
+config_recipebox_usedate=false
+config_topics_gophermap=true
+config_topics_usedate=false
 config_git_commit=false
 config_git_push=false
 config_autoindent=true
@@ -311,17 +317,29 @@ function create_config() {
     mkdir -p "$(dirname "$config")"
     {
       echo "config_dir_gopher=\"$HOME/gopher/\""
-      echo "config_dir_phlog=\"phlog\""
-      echo "config_dir_recipebox=\"recipebox\""
-      echo "config_dir_topics=\"topics\""
+      echo ""
       echo "config_gopher_server=\"sdf.org\""
       echo "config_gopher_port=\"70\""
       echo "config_gopher_root=\"/users/username/\""
+      echo ""
+      echo "config_dir_phlog=\"phlog\""
+      echo "config_phlog_gophermap=true"
+      echo "config_phlog_usedate=true"
+      echo ""
+      echo "config_dir_recipebox=\"recipebox\""
+      echo "config_recipebox_gophermap=false"
+      echo "config_recipebox_usedate=false"
+      echo ""
+      echo "config_dir_topics=\"topics\""
+      echo "config_topics_gophermap=true"
+      echo "config_topics_usedate=false"
+      echo ""
       echo "config_git_commit=false"
       echo "config_git_push=false"
-      echo "config_autoindent=true"
+      echo ""
       echo "config_autofold=false"
       echo "config_foldwidth=66"
+      echo "config_autoindent=true"
     } >> "$config"
   else
     echo "Configuration already exists. Abort."
@@ -383,17 +401,29 @@ function main() {
 
   if [[ ${arg_recipe} -gt 0 ]]
   then
-    make_post "What is the name of your recipe? " "$config_dir_recipebox" false false true
+    make_post "What is the name of your recipe? " \
+      "$config_dir_recipebox" \
+      "$config_recipebox_gophermap" \
+      "$config_recipebox_usedate" \
+      true
   fi
 
   if [[ ${arg_topic} -gt 0 ]]
   then
-    make_post "What is the name of your topic? " "$config_dir_topics" true false true
+    make_post "What is the name of your topic? " \
+      "$config_dir_topics" \
+      "$config_topics_gophermap" \
+      "$config_topics_usedate" \
+      true
   fi
 
   if [[ ${arg_phlog} -gt 0 ]]
   then
-    make_post "Enter a title for your post: " "$config_dir_phlog" true true true
+    make_post "Enter a title for your post: " \
+      "$config_dir_phlog" \
+      "$config_phlog_gophermap" \
+      "$config_phlog_usedate" \
+      true
   fi
 }
 
