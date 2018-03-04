@@ -125,7 +125,6 @@ function day_suffix() {
 }
 
 function update_gopher_date() {
-  echo "Updating gopher last modified date"
   sed -i "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${config_dir_gopher}/gophermap"
 }
 
@@ -219,7 +218,6 @@ function make_post() {
     then
       cat "${post_dir}/.template" > "$post_file"
     else
-      echo "Creating $post_file"
       {
         echo "----------------------------------------"
         echo "$title"
@@ -241,7 +239,6 @@ function make_post() {
     if $use_gophermap; then
       if [[ $config_autoindent == true ]] && [[ $flag_noautoindent == 0 ]]
       then
-        echo "Processing for links and autoindenting"
         temp_links=$(mktemp -t "$(basename "$0").links.XXXXXXX") || die "Failed to create temporary file" 1
         sed -n '/^Links:$/,$p' "$post_file" | tail -n +2 > "$temp_links"
         sed -i '/^Links:$/,$d' "$post_file"
@@ -254,7 +251,6 @@ function make_post() {
       autofold "$post_file"
     fi
 
-    echo "Updating $type"
     temp_gophermap=$(mktemp -t "$(basename "$0").gophermap.XXXXXXX") || die "Failed to create temporary file" 1
 
     if $use_gophermap; then
@@ -290,7 +286,6 @@ function make_post() {
 
     if [[ $config_git_commit != false ]]
     then
-      echo "Committing to git repository"
       pushd "$config_dir_gopher"
       git add "${post_dir}/gophermap" "${post_file}"
       if $update_root; then
@@ -299,7 +294,6 @@ function make_post() {
       git commit -m "$type: $title"
       if [[ $config_git_push != false ]]
       then
-        echo "Pushing to git remote"
         git pull
         git push
       fi
