@@ -33,8 +33,8 @@ flag_help=0
 flag_noautoindent=0
 
 # vars from args
-arg_options=hvd
-arg_longoptions=help,version,debug,noautoindent
+arg_options="hvd"
+arg_longoptions="help,version,debug,noautoindent"
 arg_shortlist=0
 arg_recipe=0
 arg_phlog=0
@@ -51,7 +51,7 @@ popd () {
   command popd 2>/dev/null 1>&2
 }
 
-function show_help() {
+function show_help {
   cat > /dev/stdout << END
 burrow [options] [commands]
 
@@ -70,8 +70,12 @@ OPTIONAL FLAGS:
 END
 }
 
-function parse_input() {
-  parsed=$(getopt --options=$arg_options --longoptions=$arg_longoptions --name "$0" -- "$@")
+function parse_input {
+  parsed=$(getopt \
+    --options=$arg_options \
+    --longoptions=$arg_longoptions \
+    --name "$0" \
+    -- "$@")
   if [[ $? -ne 0 ]]; then
     die "Invalid input" 2
   fi
@@ -106,8 +110,7 @@ function parse_input() {
     esac
   done
 
-  for arg in "$@"
-  do
+  for arg in "$@"; do
     argc=${arg,,}
     case $argc in
       "shortlist") arg_shortlist=1 ;;
@@ -121,7 +124,7 @@ function parse_input() {
   done
 }
 
-function day_suffix() {
+function day_suffix {
   case $(date +%d) in
     01|1|21|31) echo "st";;
     02|2|22)    echo "nd";;
@@ -130,29 +133,39 @@ function day_suffix() {
   esac
 }
 
-function update_gopher_date() {
-  sed -i "s/.*Last\ Updated:.*/        ==== Last Updated: $(date +"%B %d$(day_suffix), %Y") ====/" "${config_dir_gopher}/gophermap"
+function update_gopher_date {
+  newdate=$(date +"%B %d$(day_suffix), %Y")
+  sed -i "s/.*Last\ Updated:.*/      ==== Last Updated: $newdate ====/" \
+    "${config_dir_gopher}/gophermap"
 }
 
-function check_directory() {
-  if [[ ! -d "$1" ]]
-  then
-    die "Missing directory: $1 aborting."
+function check_directory {
+  if [[ ! -d "$1" ]]; then
+    die "Missing directory: $1 aborting." 1
   fi
 }
 
-function die() {
-  if [[ ! -z "$1" ]]; then
-    echo "$1";
-    if [[ "$2" =~ /^[0-9]+$/ ]] ; then
-      exit "$2"
+function die {
+  msg="$1"
+  code="$2"
+
+  # exit code defaults to 1
+  if [[ "$code" =~ /^[0-9]+$/ ]] ; then
+    code=1
+  fi
+
+  # output message to stdout or stderr based on code
+  if [[ ! -z "$msg" ]]; then
+    if [[ "$code" == 0 ]]; then
+      echo "$msg"
     else
-      exit 1
+      echo "$msg" >&2
     fi
   fi
+  exit "$code"
 }
 
-function finish() {
+function finish {
   if [[ -f "$temp_gophermap" ]]; then
     rm "$temp_gophermap"
   fi
@@ -165,17 +178,18 @@ function finish() {
 }
 trap finish EXIT
 
-function autofold() {
+function autofold {
   file="$1"
   if $config_autofold; then
-    temp_fold=$(mktemp -t "$(basename "$0").fold.XXXXXXX") || die "Failed to create temporary file" 1
+    temp_fold=$(mktemp -t "$(basename "$0").fold.XXXXXXX") || \
+      die "Failed to create temporary file" 1
     fold -s -w "$config_foldwidth" "$file" > "$temp_fold"
     cat "$temp_fold" > "$file"
     rm "$temp_fold"
   fi
 }
 
-function make_post() {
+function make_post {
   query="$1"
   type="$2"
   use_gophermap="$3"
@@ -186,15 +200,17 @@ function make_post() {
   check_directory "${config_dir_gopher}${type}"
 
   read -r -e -p "$query" title
-  if [[ $title == "" ]]
-  then
+  if [[ $title == "" ]]; then
     die "Cancelled." 0
   fi
 
   type_gophermap="${config_dir_gopher}${type}/gophermap"
 
   if $use_gophermap; then
-    title_slug=$(echo "${title}" | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
+    title_slug=$(echo "${title}" | \
+      sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | \
+      tr -s '-' | \
+      tr '[:upper:]' '[:lower:]')
     if $use_date; then
       post_dir="${config_dir_gopher}${type}/$(date +%Y%m%d)-$title_slug"
       post_path="${config_gopher_root}${type}/$(date +%Y%m%d)-$title_slug"
@@ -207,7 +223,10 @@ function make_post() {
   else
     post_dir="${config_dir_gopher}${type}"
     post_path="${config_gopher_root}${type}"
-    title_slug=$(echo "${title}" | sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
+    title_slug=$(echo "${title}" | \
+      sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | \
+      tr -s '-' | \
+      tr '[:upper:]' '[:lower:]')
     if $use_date; then
       title_slug="$(date +%Y%m%d)-${title_slug}"
     fi
@@ -215,13 +234,11 @@ function make_post() {
     post_file_path="${post_path}/${title_slug}.txt"
   fi
 
-  if [[ -f $post_file ]]
-  then
+  if [[ -f $post_file ]]; then
     $editor "$post_file"
   else
     mkdir -p "${post_dir}"
-    if [[ -f "${post_dir}/.template" ]]
-    then
+    if [[ -f "${post_dir}/.template" ]]; then
       cat "${post_dir}/.template" > "$post_file"
     else
       {
@@ -243,9 +260,9 @@ function make_post() {
     $editor "$post_file"
 
     if $use_gophermap; then
-      if [[ $config_autoindent == true ]] && [[ $flag_noautoindent == 0 ]]
-      then
-        temp_links=$(mktemp -t "$(basename "$0").links.XXXXXXX") || die "Failed to create temporary file" 1
+      if [[ $config_autoindent ]] && [[ $flag_noautoindent == 0 ]]; then
+        temp_links=$(mktemp -t "$(basename "$0").links.XXXXXXX") || \
+          die "Failed to create temporary file" 1
         sed -n '/^Links:$/,$p' "$post_file" | tail -n +2 > "$temp_links"
         sed -i '/^Links:$/,$d' "$post_file"
         autofold "$post_file"
@@ -257,23 +274,28 @@ function make_post() {
       autofold "$post_file"
     fi
 
-    temp_gophermap=$(mktemp -t "$(basename "$0").gophermap.XXXXXXX") || die "Failed to create temporary file" 1
+    temp_gophermap=$(mktemp -t "$(basename "$0").gophermap.XXXXXXX") || \
+      die "Failed to create temporary file" 1
 
     if $use_gophermap; then
       if $use_date; then
         # if using gophermap and date
-        echo -e "1$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+        echo -e "1$(date +%Y-%m-%d) - $title\t${post_file_path}\t"\
+          "${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
       else
         # if using gophermap but not date
-        echo -e "1$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+        echo -e "1$title\t${post_file_path}\t"\
+          "${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
       fi
     else
       if $use_date; then
         # if not using gophermap but using date
-        echo -e "0$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+        echo -e "0$(date +%Y-%m-%d) - $title\t${post_file_path}\t"\
+          "${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
       else
         # if not using gophermap or date
-        echo -e "0$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+        echo -e "0$title\t${post_file_path}\t"\
+          "${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
       fi
     fi
 
@@ -290,16 +312,14 @@ function make_post() {
       update_gopher_date
     fi
 
-    if [[ $config_git_commit != false ]]
-    then
+    if [[ $config_git_commit != false ]]; then
       pushd "$config_dir_gopher"
       git add "${post_dir}/gophermap" "${post_file}" "$type_gophermap"
       if $update_root; then
         git add "${config_dir_gopher}/gophermap"
       fi
       git commit -m "$type: $title"
-      if [[ $config_git_push != false ]]
-      then
+      if [[ $config_git_push != false ]]; then
         git pull
         git push
       fi
@@ -308,11 +328,11 @@ function make_post() {
   fi
 }
 
-function create_config() {
-  if [[ ! -f "$HOME/.config/burrow/config" ]] &&
-    [[ ! -f "$HOME/.config/burrow" ]] &&
-    [[ ! -f "$HOME/.burrow" ]]
-  then
+function create_config {
+  if [[ ! -f "$HOME/.config/burrow/config" ]] && \
+    [[ ! -f "$HOME/.config/burrow" ]] && \
+    [[ ! -f "$HOME/.burrow" ]]; then
+
     config="$HOME/.config/burrow/config"
     mkdir -p "$(dirname "$config")"
     {
@@ -342,65 +362,53 @@ function create_config() {
       echo "config_autoindent=true"
     } >> "$config"
   else
-    echo "Configuration already exists. Abort."
+    echo "Configuration already exists."
   fi
 }
 
-function update_git() {
+function update_git {
   pushd "$config_dir_gopher"
-  if [[ $? -eq 0 ]] 
-  then
-    if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]
-    then
-      git pull -q
-    fi
-    popd
+  if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]; then
+    git pull -q
   fi
+  popd
 }
 
-function main() {
+function main {
   parse_input "$@"
 
-  if [[ $arg_shortlist -gt 0 ]]
-  then
-    die "phlog topic recipe create-config update-git -v -h -d --version --help --debug --noautoindent" 0
+  if [[ $arg_shortlist -gt 0 ]]; then
+    die "phlog topic recipe create-config update-git -v -h -d --version \
+      --help --debug --noautoindent" 0
   fi
 
-  if [[ $flag_version -gt 0 ]]
-  then
+  if [[ $flag_version -gt 0 ]]; then
     echo "$version"
   fi
 
-  if [[ $flag_help -gt 0 ]]
-  then
+  if [[ $flag_help -gt 0 ]]; then
     show_help
   fi
 
-  if [[ $flag_debug -gt 0 ]]
-  then
+  if [[ $flag_debug -gt 0 ]]; then
     set -x
   fi
 
-  if [[ $arg_create_config -gt 0 ]]
-  then
+  if [[ $arg_create_config -gt 0 ]]; then
     create_config
   fi
 
-  for configfile in $configfiles
-  do
-    if [[ -f $configfile ]]
-    then
+  for configfile in $configfiles; do
+    if [[ -f $configfile ]]; then
       source "$configfile"
     fi
   done
 
-  if [[ ${arg_update_git} -gt 0 ]]
-  then
+  if [[ ${arg_update_git} -gt 0 ]]; then
     update_git
   fi
 
-  if [[ ${arg_recipe} -gt 0 ]]
-  then
+  if [[ ${arg_recipe} -gt 0 ]]; then
     make_post "What is the name of your recipe? " \
       "$config_dir_recipebox" \
       "$config_recipebox_gophermap" \
@@ -408,8 +416,7 @@ function main() {
       true
   fi
 
-  if [[ ${arg_topic} -gt 0 ]]
-  then
+  if [[ ${arg_topic} -gt 0 ]]; then
     make_post "What is the name of your topic? " \
       "$config_dir_topics" \
       "$config_topics_gophermap" \
@@ -417,8 +424,7 @@ function main() {
       true
   fi
 
-  if [[ ${arg_phlog} -gt 0 ]]
-  then
+  if [[ ${arg_phlog} -gt 0 ]]; then
     make_post "Enter a title for your post: " \
       "$config_dir_phlog" \
       "$config_phlog_gophermap" \
