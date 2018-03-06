@@ -71,11 +71,19 @@ END
 }
 
 function parse_input {
-  parsed=$(getopt \
-    --options=$arg_options \
-    --longoptions=$arg_longoptions \
-    --name "$0" \
-    -- "$@")
+  getopt -T > /dev/null
+  if [ $? -eq 4 ]; then
+    # GNU enhanced getopt is available
+    parsed=$(getopt \
+      --options=$arg_options \
+      --longoptions=$arg_longoptions \
+      --name "$0" \
+      -- "$@")
+  else
+    # Original getopt is available
+    parsed=$(getopt $arg_options "$@")
+  fi
+
   if [[ $? -ne 0 ]]; then
     die "Invalid input" 2
   fi

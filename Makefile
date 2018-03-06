@@ -9,14 +9,12 @@ endif
 
 HAS_BREW := $(shell command -v brew 2> /dev/null)
 ifdef HAS_BREW
-ifneq ($(wildcard $$(brew --prefix)/etc/bash_completion.d/),)
   CPLDIR ?= $$(brew --prefix)/etc/bash_completion.d
-endif
 endif
 
 HAS_PKGCONFIG := $(shell command -v pkg-config 2> /dev/null)
 ifdef HAS_PKGCONFIG
-  CPLDIR ?= $$(pkg-config --variable=completionsdir bash-completion)
+  CPLDIR ?= $$(pkg-config --variable=completionsdir bash-completion 2> /dev/null)
 endif
 
 install:
@@ -30,6 +28,7 @@ install:
 	@chmod 644 $(MANDIR)/man1/burrow.1
 ifdef CPLDIR
 	@echo Installing the command completion to $(CPLDIR)
+	@mkdir -p $(CPLDIR)
 	@cp -f burrow.d $(CPLDIR)/burrow
 	@chmod 644 $(CPLDIR)/burrow
 endif
@@ -40,7 +39,6 @@ uninstall:
 	@echo Removing the manual page from $(MANDIR)/man1
 	@rm -f $(BINDIR)/man1/burrow.1
 ifdef CPLDIR
-	@echo Installing the command completion to $(CPLDIR)
 	@echo Removing the command completion from $(CPLDIR)
 	@rm -f $(CPLDIR)/burrow
 endif
