@@ -44,6 +44,7 @@ burrow phlog          # create new phlog post
 burrow recipe         # add or update a recipe to box
 burrow topic          # add or update a topic file
 burrow create-config  # generate a default config file
+burrow edit-config    # open your config file for editing
 burrow update-git     # pull latest git repo for gopher dir, if exists
 ```
 
@@ -52,6 +53,8 @@ burrow update-git     # pull latest git repo for gopher dir, if exists
 listed below and provide an easy way to customize your configuration. At a
 minimum you should update your `config_dir_gopher` to point to the folder on
 your local computer where your gopher hole resides.
+
+- `edit-config` will open your burrow configuration file for easy editing.
 
 - `phlog` will prompt for the title of a new post, then open it in your default
 `$EDITOR`. By default it will provide you a template, but you can override this

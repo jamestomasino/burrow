@@ -40,6 +40,7 @@ arg_recipe=0
 arg_phlog=0
 arg_topic=0
 arg_create_config=0
+arg_edit_config=0
 arg_update_git=0
 
 # silence directory movements
@@ -60,6 +61,7 @@ COMMANDS:
       recipe                  Add new recipe to box
       topic                   Add or update a topic
       create-config           Create a default configuration file
+      edit-config             Edit your configuration file
       update-git              Silently pulls gopher git repo if it exists
 
 OPTIONAL FLAGS:
@@ -126,6 +128,7 @@ function parse_input {
       "recipe") arg_recipe=1 ;;
       "topic") arg_topic=1 ;;
       "create-config") arg_create_config=1 ;;
+      "edit-config") arg_edit_config=1 ;;
       "update-git") arg_update_git=1 ;;
       *) echo "Unknown command: $arg";;
     esac
@@ -336,6 +339,18 @@ function make_post {
   fi
 }
 
+function edit_config {
+  if [[ -f "$HOME/.config/burrow/config" ]]; then
+    $EDITOR "$HOME/.config/burrow/config"
+  elif [[ -f "$HOME/.config/burrow" ]]; then
+    $EDITOR "$HOME/.config/burrow"
+  elif [[ -f "$HOME/.burrow" ]]; then
+    $EDITOR "$HOME/.burrow"
+  else
+    die "No configuration found" 0
+  fi
+}
+
 function create_config {
   if [[ ! -f "$HOME/.config/burrow/config" ]] && \
     [[ ! -f "$HOME/.config/burrow" ]] && \
@@ -386,7 +401,7 @@ function main {
   parse_input "$@"
 
   if [[ $arg_shortlist -gt 0 ]]; then
-    out="phlog topic recipe create-config update-git -v -h -d"
+    out="phlog topic recipe edit-config create-config update-git -v -h -d"
     # include long options only if using gnu getopt
     getopt -T > /dev/null
     if [ $? -eq 4 ]; then
@@ -409,6 +424,10 @@ function main {
 
   if [[ $arg_create_config -gt 0 ]]; then
     create_config
+  fi
+
+  if [[ $arg_edit_config -gt 0 ]]; then
+    edit_config
   fi
 
   for configfile in $configfiles; do
