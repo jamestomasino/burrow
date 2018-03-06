@@ -315,24 +315,24 @@ function make_post {
     if ! $use_date; then
       sort -fo "${post_dir}/gophermap" "${post_dir}/gophermap"
     fi
+  fi
 
+  if $update_root; then
+    update_gopher_date
+  fi
+
+  if [[ $config_git_commit != false ]]; then
+    pushd "$config_dir_gopher"
+    git add "${post_dir}/gophermap" "${post_file}" "$type_gophermap"
     if $update_root; then
-      update_gopher_date
+      git add "${config_dir_gopher}/gophermap"
     fi
-
-    if [[ $config_git_commit != false ]]; then
-      pushd "$config_dir_gopher"
-      git add "${post_dir}/gophermap" "${post_file}" "$type_gophermap"
-      if $update_root; then
-        git add "${config_dir_gopher}/gophermap"
-      fi
-      git commit -m "$type: $title"
-      if [[ $config_git_push != false ]]; then
-        git pull
-        git push
-      fi
-      popd
+    git commit -m "$type: $title"
+    if [[ $config_git_push != false ]]; then
+      git pull
+      git push
     fi
+    popd
   fi
 }
 
