@@ -386,8 +386,13 @@ function main {
   parse_input "$@"
 
   if [[ $arg_shortlist -gt 0 ]]; then
-    die "phlog topic recipe create-config update-git -v -h -d --version \
-      --help --debug --noautoindent" 0
+    out="phlog topic recipe create-config update-git -v -h -d"
+    # include long options only if using gnu getopt
+    getopt -T > /dev/null
+    if [ $? -eq 4 ]; then
+      out="${out} --version --help --debug --noautointent"
+    fi
+    die "${out}" 0
   fi
 
   if [[ $flag_version -gt 0 ]]; then
