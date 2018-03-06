@@ -199,20 +199,20 @@ function autofold {
 
 function make_post {
   query="$1"
-  type="$2"
+  post_type="$2"
   use_gophermap="$3"
   use_date="$4"
   update_root="$5"
 
   check_directory "$config_dir_gopher"
-  check_directory "${config_dir_gopher}${type}"
+  check_directory "${config_dir_gopher}${post_type}"
 
   read -r -e -p "$query" title
   if [[ $title == "" ]]; then
     die "Cancelled." 0
   fi
 
-  type_gophermap="${config_dir_gopher}${type}/gophermap"
+  type_gophermap="${config_dir_gopher}${post_type}/gophermap"
 
   if $use_gophermap; then
     title_slug=$(echo "${title}" | \
@@ -220,17 +220,17 @@ function make_post {
       tr -s '-' | \
       tr '[:upper:]' '[:lower:]')
     if $use_date; then
-      post_dir="${config_dir_gopher}${type}/$(date +%Y%m%d)-$title_slug"
-      post_path="${config_gopher_root}${type}/$(date +%Y%m%d)-$title_slug"
+      post_dir="${config_dir_gopher}${post_type}/$(date +%Y%m%d)-$title_slug"
+      post_path="${config_gopher_root}${post_type}/$(date +%Y%m%d)-$title_slug"
     else
-      post_dir="${config_dir_gopher}${type}/$title_slug"
-      post_path="${config_gopher_root}${type}/$title_slug"
+      post_dir="${config_dir_gopher}${post_type}/$title_slug"
+      post_path="${config_gopher_root}${post_type}/$title_slug"
     fi
     post_file="${post_dir}/gophermap"
     post_file_path="${post_path}"
   else
-    post_dir="${config_dir_gopher}${type}"
-    post_path="${config_gopher_root}${type}"
+    post_dir="${config_dir_gopher}${post_type}"
+    post_path="${config_gopher_root}${post_type}"
     title_slug=$(echo "${title}" | \
       sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | \
       tr -s '-' | \
@@ -327,7 +327,7 @@ function make_post {
     if $update_root; then
       git add "${config_dir_gopher}/gophermap"
     fi
-    git commit -m "$type: $title"
+    git commit -m "$post_type: $title"
     if [[ $config_git_push != false ]]; then
       git pull
       git push
