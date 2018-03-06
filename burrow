@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v1.2.4"
+version="v1.2.5"
 
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
