@@ -46,6 +46,7 @@ burrow topic          # add or update a topic file
 burrow create-config  # generate a default config file
 burrow edit-config    # open your config file for editing
 burrow update-git     # pull latest git repo for gopher dir, if exists
+burrow update-burrow  # update git repo or pull latest version from github
 ```
 
 - `create-config` will auto-generate a configuration file at
@@ -70,6 +71,11 @@ by including a `.template` file in your topics directory.
 
 - `update-git` will silently attempt to update a git repository at the location
 of your gopher hole. It is appropriate for use by a cron job.
+
+- `update-burrow` will attempt to pull the latest version of burrow from git if
+your local folder is a git repository. If not, it will attempt to update each
+file in the burrow directory with the same named file in the master branch of
+the git repository for burrow on Github.
 
 _`man burrow` or `burrow -h` for more information._
 

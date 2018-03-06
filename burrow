@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v1.2.5"
+version="v1.2.6"
 
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
@@ -42,6 +42,7 @@ arg_topic=0
 arg_create_config=0
 arg_edit_config=0
 arg_update_git=0
+arg_update_burrow=0
 
 # silence directory movements
 pushd () {
@@ -63,6 +64,7 @@ COMMANDS:
       create-config           Create a default configuration file
       edit-config             Edit your configuration file
       update-git              Silently pulls gopher git repo if it exists
+      update-burrow           Auto-update this application in its local folder
 
 OPTIONAL FLAGS:
   -h, --help                  Show this help
@@ -130,6 +132,7 @@ function parse_input {
       "create-config") arg_create_config=1 ;;
       "edit-config") arg_edit_config=1 ;;
       "update-git") arg_update_git=1 ;;
+      "update-burrow") arg_update_burrow=1 ;;
       *) echo "Unknown command: $arg";;
     esac
   done
@@ -397,11 +400,43 @@ function update_git {
   popd
 }
 
+function update_burrow {
+  burrow_src="${BASH_SOURCE[0]}"
+  while [ -h "${burrow_src}" ]; do
+    burrow_dir="$( cd -P "$( dirname "${burrow_src}" )" && pwd )"
+    burrow_src="$(readlink "${burrow_src}")"
+    [[ ${burrow_src} != /* ]] && burrow_src="${burrow_dir}/${burrow_src}"
+  done
+  burrow_dir="$( cd -P "$( dirname "${burrow_src}" )" && pwd )"
+  pushd "${burrow_dir}"
+  if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]; then
+    read -r -p "Do you want to update your burrow git repository? [y/N] " response
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+    then
+      git pull -q
+    else
+      die "Aborting." 0
+    fi
+  else
+    github_src="https://raw.githubusercontent.com/jamestomasino/burrow/master/"
+    read -r -p "Do you want to fetch the latest burrow executable? [y/N] " response
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+    then
+      for filename in ./burrow*; do
+        curl -sfLO "${github_src}${filename}"
+      done
+    else
+      die "Aborting." 0
+    fi
+  fi
+  popd
+}
+
 function main {
   parse_input "$@"
 
   if [[ $arg_shortlist -gt 0 ]]; then
-    out="phlog topic recipe edit-config create-config update-git -v -h -d"
+    out="phlog topic recipe edit-config create-config update-burrow update-git -v -h -d"
     # include long options only if using gnu getopt
     getopt -T > /dev/null
     if [ $? -eq 4 ]; then
@@ -435,6 +470,10 @@ function main {
       source "$configfile"
     fi
   done
+
+  if [[ ${arg_update_burrow} -gt 0 ]]; then
+    update_burrow
+  fi
 
   if [[ ${arg_update_git} -gt 0 ]]; then
     update_git
