@@ -294,22 +294,18 @@ function make_post {
     if $use_gophermap; then
       if $use_date; then
         # if using gophermap and date
-        echo -e "1$(date +%Y-%m-%d) - $title\t${post_file_path}\t"\
-          "${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+        echo -e "1$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
       else
         # if using gophermap but not date
-        echo -e "1$title\t${post_file_path}\t"\
-          "${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+        echo -e "1$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
       fi
     else
       if $use_date; then
         # if not using gophermap but using date
-        echo -e "0$(date +%Y-%m-%d) - $title\t${post_file_path}\t"\
-          "${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+        echo -e "0$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
       else
         # if not using gophermap or date
-        echo -e "0$title\t${post_file_path}\t"\
-          "${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+        echo -e "0$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
       fi
     fi
 
