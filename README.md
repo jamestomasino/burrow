@@ -113,8 +113,6 @@ config_topics_usedate=false            # do not use a date-stamp on topic filena
 config_git_commit=false                # automatically commit changes if git repo
 config_git_push=false                  # automatically push changes if git repo
 
-config_autofold=false                  # automatically break lines at specific width
-config_foldwidth=66                    # width of line used for autofold
 config_autoindent=true                 # automatically reformat gophermaps with leading spaces
                                        # and parse links at the end of file
 ```

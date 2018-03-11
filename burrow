@@ -23,8 +23,6 @@ config_topics_usedate=false
 config_git_commit=false
 config_git_push=false
 config_autoindent=true
-config_autofold=false
-config_foldwidth=66
 
 # vars from flags
 flag_debug=0
@@ -147,9 +145,9 @@ function day_suffix {
   esac
 }
 
-function update_gopher_date {
+function update_gopher_root {
   newdate=$(date +"%B %d$(day_suffix), %Y")
-  sed -i "s/.*Last\ Updated:.*/      ==== Last Updated: $newdate ====/" \
+  sed -i "s/.*Last\ Updated:.*/i     ==== Last Updated: $newdate ====/" \
     "${config_dir_gopher}/gophermap"
 }
 
@@ -183,41 +181,139 @@ function finish {
   if [[ -f "$temp_gophermap" ]]; then
     rm "$temp_gophermap"
   fi
-  if [[ -f "$temp_links" ]]; then
-    rm "$temp_links"
-  fi
-  if [[ -f "$temp_fold" ]]; then
-    rm "$temp_fold"
+  if [[ -f "$temp_post" ]]; then
+    rm "$temp_post"
   fi
 }
 trap finish EXIT
 
-function autofold {
-  file="$1"
-  if $config_autofold; then
-    temp_fold=$(mktemp -t "$(basename "$0").fold.XXXXXXX") || \
-      die "Failed to create temporary file" 1
-    fold -s -w "$config_foldwidth" "$file" > "$temp_fold"
-    cat "$temp_fold" > "$file"
-    rm "$temp_fold"
+function make_post_git {
+  if [[ $config_git_commit != false ]]; then
+    pushd "$config_dir_gopher"
+    git add "${post_dir}/gophermap" "${post_file}" "$type_gophermap"
+    if $update_root; then
+      git add "${config_dir_gopher}/gophermap"
+    fi
+    git commit -m "$post_type: $title"
+    if [[ $config_git_push != false ]]; then
+      git pull
+      git push
+    fi
+    popd
   fi
 }
 
-function make_post {
-  query="$1"
-  post_type="$2"
-  use_gophermap="$3"
-  use_date="$4"
-  update_root="$5"
+function make_post_process_formatting {
+  # If using gophermap, prefix all post lines with "i" except links
+  if $use_gophermap; then
+    if [[ $config_autoindent ]] && [[ $flag_noautoindent == 0 ]]; then
+      sed -i -e '/\t/! s/^/i/' "$post_file"
+    fi
+  fi
+}
 
-  check_directory "$config_dir_gopher"
-  check_directory "${config_dir_gopher}${post_type}"
+function make_post_gophermap {
+  # Create temporary gophermap for new post
+  temp_gophermap=$(mktemp -t "$(basename "$0").gophermap.XXXXXXX") || \
+    die "Failed to create temporary file" 1
 
-  read -r -e -p "$query" title
-  if [[ $title == "" ]]; then
-    die "Cancelled." 0
+  # Add appropriate link into temp gophermap
+  if $use_gophermap; then
+    if $use_date; then
+      # if using gophermap and date
+      echo -e "1$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+    else
+      # if using gophermap but not date
+      echo -e "1$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+    fi
+  else
+    if $use_date; then
+      # if not using gophermap but using date
+      echo -e "0$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+    else
+      # if not using gophermap or date
+      echo -e "0$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+    fi
   fi
 
+  cat "$type_gophermap" >> "$temp_gophermap"
+  cat "$temp_gophermap" > "$type_gophermap"
+  rm "$temp_gophermap"
+
+  # Sort gophermap alphabetically if not using date
+  if [[ $use_gophermap ]] && [[ ! $use_date ]]; then
+    sort -fo "$type_gophermap" "$type_gophermap"
+  fi
+}
+
+function make_post_unprocess {
+  if [[ $config_autoindent ]] && [[ $flag_noautoindent == 0 ]]; then
+    temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
+      die "Failed to create temporary file" 1
+
+    # copy existing post to tempfile
+    cp "$post_file" "${temp_post}"
+
+    # If using gophermaps, unformat it for editing
+    if $use_gophermap; then
+      sed -i -e '/\t/! s/^i//' "${temp_post}"
+    fi
+  fi
+
+  # Get timestamp of tempfile
+  temp_post_time=$(stat -c %Y "$temp_post")
+
+  # Edit tempfile
+  $EDITOR "$temp_post"
+
+  # Verify that timestamp changed after editing, or abort
+  temp_post_time_check=$(stat -c %Y "$temp_post")
+  if [[ "$temp_post_time" != "$temp_post_time_check" ]] ; then
+    cp "${temp_post}" "$post_file" 
+  else
+    return 1
+  fi
+}
+
+function make_post_temp {
+  # Create a tempfile to do our work
+  temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
+    die "Failed to create temporary file" 1
+
+  # Populate tempfile with either template or default template
+  if [[ -f "${post_dir}/.template" ]]; then
+    cat "${post_dir}/.template" > "$temp_post"
+  else
+    {
+      echo "----------------------------------------"
+      echo "$title"
+      if $use_date; then
+        date +"%B %d$(day_suffix), %Y"
+      fi
+      echo "----------------------------------------"
+      echo ""
+      echo ""
+    } > "$temp_post"
+  fi
+
+  # Check timestamp before editing file
+  temp_post_time=$(stat -c %Y "$temp_post")
+  $EDITOR "$temp_post"
+
+  # Verify that timestamp changed after editing, or abort
+  temp_post_time_check=$(stat -c %Y "$temp_post")
+
+  # If we saved a change, create the new file
+  if [[ "$temp_post_time" != "$temp_post_time_check" ]] ; then
+    mkdir -p "${post_dir}"
+    cp "${temp_post}" "$post_file"
+    rm "${temp_post}"
+  else
+    return 1
+  fi
+}
+
+function make_post_paths {
   type_gophermap="${config_dir_gopher}${post_type}/gophermap"
 
   if $use_gophermap; then
@@ -247,95 +343,45 @@ function make_post {
     post_file="${post_dir}/${title_slug}.txt"
     post_file_path="${post_path}/${title_slug}.txt"
   fi
+}
+
+function make_post {
+  query="$1"
+  post_type="$2"
+  use_gophermap="$3"
+  use_date="$4"
+  update_root="$5"
+
+  check_directory "$config_dir_gopher"
+  check_directory "${config_dir_gopher}${post_type}"
+
+  read -r -e -p "$query" title
+  if [[ $title == "" ]]; then
+    die "Cancelled." 0
+  fi
+
+  make_post_paths
 
   if [[ -f $post_file ]]; then
-    $editor "$post_file"
+    make_post_unprocess
+    if [[ "$?" == 1 ]]; then
+      die "Aborted edit" 0
+    fi
+    make_post_process_formatting
   else
-    mkdir -p "${post_dir}"
-    if [[ -f "${post_dir}/.template" ]]; then
-      cat "${post_dir}/.template" > "$post_file"
-    else
-      {
-        echo "----------------------------------------"
-        echo "$title"
-        if $use_date; then
-          date +"%B %d$(day_suffix), %Y"
-        fi
-        echo "----------------------------------------"
-        echo ""
-        echo ""
-        if $use_gophermap; then
-          echo "Links:"
-          echo ""
-        fi
-      } >> "$post_file"
+    make_post_temp
+    if [[ "$?" == 1 ]]; then
+      die "Aborted post" 0
     fi
-
-    $editor "$post_file"
-
-    if $use_gophermap; then
-      if [[ $config_autoindent ]] && [[ $flag_noautoindent == 0 ]]; then
-        temp_links=$(mktemp -t "$(basename "$0").links.XXXXXXX") || \
-          die "Failed to create temporary file" 1
-        sed -n '/^Links:$/,$p' "$post_file" | tail -n +2 > "$temp_links"
-        sed -i '/^Links:$/,$d' "$post_file"
-        autofold "$post_file"
-        sed -i 's/^/ /' "$post_file"
-        cat "$temp_links" >> "$post_file"
-        rm "$temp_links"
-      fi
-    else
-      autofold "$post_file"
-    fi
-
-    temp_gophermap=$(mktemp -t "$(basename "$0").gophermap.XXXXXXX") || \
-      die "Failed to create temporary file" 1
-
-    if $use_gophermap; then
-      if $use_date; then
-        # if using gophermap and date
-        echo -e "1$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
-      else
-        # if using gophermap but not date
-        echo -e "1$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
-      fi
-    else
-      if $use_date; then
-        # if not using gophermap but using date
-        echo -e "0$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
-      else
-        # if not using gophermap or date
-        echo -e "0$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
-      fi
-    fi
-
-    cat "$type_gophermap" >> "$temp_gophermap"
-    cat "$temp_gophermap" > "$type_gophermap"
-    rm "$temp_gophermap"
-
-    # sort gophermap if not using date
-    if ! $use_date; then
-      sort -fo "${post_dir}/gophermap" "${post_dir}/gophermap"
-    fi
+    make_post_process_formatting
+    make_post_gophermap
   fi
 
   if $update_root; then
-    update_gopher_date
+    update_gopher_root
   fi
 
-  if [[ $config_git_commit != false ]]; then
-    pushd "$config_dir_gopher"
-    git add "${post_dir}/gophermap" "${post_file}" "$type_gophermap"
-    if $update_root; then
-      git add "${config_dir_gopher}/gophermap"
-    fi
-    git commit -m "$post_type: $title"
-    if [[ $config_git_push != false ]]; then
-      git pull
-      git push
-    fi
-    popd
-  fi
+  make_post_git
 }
 
 function edit_config {
@@ -379,8 +425,6 @@ function create_config {
       echo "config_git_commit=false"
       echo "config_git_push=false"
       echo ""
-      echo "config_autofold=false"
-      echo "config_foldwidth=66"
       echo "config_autoindent=true"
     } >> "$config"
   else
