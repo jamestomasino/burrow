@@ -113,8 +113,8 @@ config_topics_usedate=false            # do not use a date-stamp on topic filena
 config_git_commit=false                # automatically commit changes if git repo
 config_git_push=false                  # automatically push changes if git repo
 
-config_autoindent=true                 # automatically reformat gophermaps with leading spaces
-                                       # and parse links at the end of file
+config_autoindent=true                 # automatically reformat gophermaps with leading "i"
+                                       # types and parse links at the end of file
 ```
 
 _Note: This file is a valid Bash script and will be sourced upon load._
