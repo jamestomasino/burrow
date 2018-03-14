@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-version="v1.3.1"
+version="v1.3.2"
 
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
-editor=${EDITOR:-vi}
 
 # vars from config
 config_dir_gopher="$HOME/gopher/"
@@ -147,7 +146,7 @@ function day_suffix {
 
 function update_gopher_root {
   newdate=$(date +"%B %d$(day_suffix), %Y")
-  sed -i "s/.*Last\ Updated:.*/i     ==== Last Updated: $newdate ====/" \
+  sed -i "s/.*Last\ Updated:.*/i     ==== Last Updated: $newdate ====\t\t${config_gopher_root}\t${config_gopher_port}/" \
     "${config_dir_gopher}/gophermap"
 }
 
