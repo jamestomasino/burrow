@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v1.3.0"
+version="v1.3.1"
 
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
@@ -207,7 +207,11 @@ function make_post_process_formatting {
   # If using gophermap, prefix all post lines with "i" except links
   if $use_gophermap; then
     if [[ $config_autoindent ]] && [[ $flag_noautoindent == 0 ]]; then
-      sed -i -e '/\t/! s/^/i/' "$post_file"
+      temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
+        die "Failed to create temporary file" 1
+      awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/^[0-9h\+GIThsi].*\t/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
+      cp "${temp_post}" "${post_file}"
+      rm "${temp_post}"
     fi
   fi
 }
@@ -251,13 +255,14 @@ function make_post_unprocess {
     temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
       die "Failed to create temporary file" 1
 
-    # copy existing post to tempfile
-    cp "$post_file" "${temp_post}"
-
     # If using gophermaps, unformat it for editing
     if $use_gophermap; then
-      sed -i -e '/\t/! s/^i//' "${temp_post}"
+      awk -F"\t" '/^[0-9h\+GIThs].*\t/ {print $0; next} {sub(/^i/, "", $1);print $1}' "$post_file" > "${temp_post}"
+    else
+      # copy existing post to tempfile
+      cp "$post_file" "${temp_post}"
     fi
+
   fi
 
   # Get timestamp of tempfile
@@ -270,7 +275,9 @@ function make_post_unprocess {
   temp_post_time_check=$(stat -c %Y "$temp_post")
   if [[ "$temp_post_time" != "$temp_post_time_check" ]] ; then
     cp "${temp_post}" "$post_file" 
+    rm "${temp_post}"
   else
+    rm "${temp_post}"
     return 1
   fi
 }
@@ -309,6 +316,7 @@ function make_post_temp {
     cp "${temp_post}" "$post_file"
     rm "${temp_post}"
   else
+    rm "${temp_post}"
     return 1
   fi
 }
