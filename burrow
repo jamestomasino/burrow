@@ -324,9 +324,7 @@ function make_post_paths {
 
   if $use_gophermap; then
     title_slug=$(echo "${title}" | \
-      sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | \
-      tr -s '-' | \
-      tr '[:upper:]' '[:lower:]')
+      sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
     if $use_date; then
       post_dir="${config_dir_gopher}${post_type}/$(date +%Y%m%d)-$title_slug"
       post_path="${config_gopher_root}${post_type}/$(date +%Y%m%d)-$title_slug"
@@ -340,9 +338,7 @@ function make_post_paths {
     post_dir="${config_dir_gopher}${post_type}"
     post_path="${config_gopher_root}${post_type}"
     title_slug=$(echo "${title}" | \
-      sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | \
-      tr -s '-' | \
-      tr '[:upper:]' '[:lower:]')
+      sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
     if $use_date; then
       title_slug="$(date +%Y%m%d)-${title_slug}"
     fi
