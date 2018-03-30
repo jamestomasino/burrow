@@ -12,8 +12,6 @@
 
   * Install on OSX: `brew install bash`
 
-* GNU stat (Working on making compatible with BSD version as well)
-
 #### Recommended
 
 * GNU sed
