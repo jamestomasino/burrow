@@ -163,7 +163,7 @@ function day_suffix {
 
 function update_gopher_root {
   newdate=$(date +"%B %d$(day_suffix), %Y")
-  sed -i "s|.*Last\ Updated:.*|i     ==== Last Updated: $newdate ====\t\t${config_gopher_server}\t${config_gopher_port}|" "${config_dir_gopher}/gophermap"
+  sed -i '' "s|.*Last\ Updated:.*|i     ==== Last Updated: $newdate ====\t\t${config_gopher_server}\t${config_gopher_port}|" "${config_dir_gopher}/gophermap"
 }
 
 function check_directory {
