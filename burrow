@@ -438,8 +438,9 @@ function make_rss {
     filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||")"
     date="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { print $1; }')"
     title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | sed 's/.*/\L&/; s/[a-z]*/\u&/g' )"
+
     {
-      echo "<item>" # >> ""
+      echo "<item>"
       echo "  <title>${title}</title>"
       echo "  <link>gopher://${config_gopher_server}/0${config_gopher_root}${config_dir_phlog}/${filename}</link>"
       echo "  <pubdate>$(date -R --date="${date}")</pubdate>"
@@ -454,6 +455,7 @@ function make_rss {
       echo "</item>"
     } >> "${config_dir_gopher}${config_file_rss}"
   done
+
   echo "</channel>" >> "${config_dir_gopher}${config_file_rss}"
   echo "</rss>" >> "${config_dir_gopher}${config_file_rss}"
 }
