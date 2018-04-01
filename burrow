@@ -447,7 +447,7 @@ function make_rss {
       echo "  <description><![CDATA[<pre>"
       if grep -q "gophermap$" <<< $filename
       then
-        awk -F"\t" '/^[2-9h\+GIThs].*\t/ {print $0; next} /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); print l "\n    gopher://" $3 "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
+        awk -F"\t" '/^[2-9\+GITs].*\t/ {print $0; next} /^h.*\t/ { l=substr($1, 2, length($1)); print l "\n    " substr($2, 5, length($2)); next } /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); print l "\n    gopher://" $3 "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
       else
         cat "$f"
       fi
