@@ -436,7 +436,10 @@ function make_rss {
       echo "  <link>gopher://${config_gopher_server}/0${config_gopher_root}${config_dir_phlog}/${filename}</link>"
       echo "  <pubdate>$(date -R --date="${date}")</pubdate>"
       echo "  <description><![CDATA[<pre>"
-      # curl -s --stderr - "${baseurl}/0${link}" | sed -n -f escapexml.sed >> "${xmlfile}"
+      # TODO: add test for gophermap or not
+      # if gophermap, remove formatting from "i" types
+      # TODO: reconstruct normal URLs from type 0 and 1 links
+      awk -F"\t" '/^[0-9h\+GIThs].*\t/ {print $0; next} {sub(/^i/, "", $1);print $1}' "$f"
       echo "  </pre>]]></description>"
       echo "</item>"
     } >> "${config_dir_gopher}${config_file_rss}"
