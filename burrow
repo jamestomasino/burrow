@@ -439,7 +439,12 @@ function make_rss {
       # TODO: add test for gophermap or not
       # if gophermap, remove formatting from "i" types
       # TODO: reconstruct normal URLs from type 0 and 1 links
-      awk -F"\t" '/^[0-9h\+GIThs].*\t/ {print $0; next} {sub(/^i/, "", $1);print $1}' "$f"
+      if grep -q "gophermap$" <<< $filename
+      then
+        awk -F"\t" '/^[2-9h\+GIThs].*\t/ {print $0; next} /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); print l "\n    gopher://" $3 "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
+      else
+        cat "$f"
+      fi
       echo "  </pre>]]></description>"
       echo "</item>"
     } >> "${config_dir_gopher}${config_file_rss}"
