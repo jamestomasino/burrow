@@ -216,6 +216,9 @@ function make_post_git {
     if $update_root; then
       git add "${config_dir_gopher}/gophermap"
     fi
+    if $config_phlog_autorss; then
+      git add "${config_dir_gopher}${config_file_rss}"
+    fi
     git commit -m "$post_type: $title"
     if [[ $config_git_push != false ]]; then
       git pull
@@ -377,6 +380,7 @@ function make_post {
   use_gophermap="$3"
   use_date="$4"
   update_root="$5"
+  create_rss="$6"
 
   check_directory "$config_dir_gopher"
   check_directory "${config_dir_gopher}${post_type}"
@@ -405,6 +409,10 @@ function make_post {
 
   if $update_root; then
     update_gopher_root
+  fi
+
+  if $create_rss; then
+    make_rss
   fi
 
   make_post_git
@@ -598,6 +606,7 @@ function main {
       "$config_recipebox_gophermap" \
       "$config_recipebox_usedate" \
       true
+      false
   fi
 
   if [[ ${arg_topic} -gt 0 ]]; then
@@ -606,6 +615,7 @@ function main {
       "$config_topics_gophermap" \
       "$config_topics_usedate" \
       true
+      false
   fi
 
   if [[ ${arg_phlog} -gt 0 ]]; then
@@ -614,6 +624,7 @@ function main {
       "$config_phlog_gophermap" \
       "$config_phlog_usedate" \
       true
+      ${config_phlog_autorss}
   fi
 
   if [[ ${arg_rss} -gt 0 ]]; then
