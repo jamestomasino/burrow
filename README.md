@@ -10,21 +10,11 @@
 
 * bash 4+
 
-  * Install on OSX: `brew install bash`
-
-* GNU stat (Working on making compatible with BSD version as well)
-
-#### Recommended
-
-* GNU sed
-
-  * Avoids creation of `.bak` files in strange places on OSX
-  * Install on OSX: `brew install gnu-sed --with-default-names`
+#### Optional
 
 * GNU getopt
 
   * Required to use long named switches, like --version or --help instead of -v and -h.
-  * Install on OSX: `brew install gnu-getopt --with-default-names`
 
 ### Install
 

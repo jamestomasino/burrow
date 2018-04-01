@@ -28,6 +28,11 @@ config_gopher_desc="Gopher Hole Description"
 config_rss_num_entries="10"
 config_phlog_autorss=false
 
+# coreutils function wrappers
+function stat_func {
+  return 0
+}
+
 # vars from flags
 flag_debug=0
 flag_version=0
@@ -75,6 +80,18 @@ OPTIONAL FLAGS:
   -d, --debug                 Debug mode
 
 END
+}
+
+function check_coreutils {
+  if stat -c"%U" /dev/null >/dev/null 2>/dev/null ; then
+    function stat_func {
+      stat -c %Y "$1"
+    }
+  else
+    function stat_func {
+      stat -Lnqr "$1" | awk '{print $9}'
+    }
+  fi
 }
 
 function parse_input {
@@ -153,7 +170,7 @@ function day_suffix {
 
 function update_gopher_root {
   newdate=$(date +"%B %d$(day_suffix), %Y")
-  sed -i "s|.*Last\ Updated:.*|i     ==== Last Updated: $newdate ====\t\t${config_gopher_server}\t${config_gopher_port}|" "${config_dir_gopher}/gophermap"
+  sed -i '' "s|.*Last\ Updated:.*|i     ==== Last Updated: $newdate ====\t\t${config_gopher_server}\t${config_gopher_port}|" "${config_dir_gopher}/gophermap"
 }
 
 function check_directory {
@@ -271,13 +288,13 @@ function make_post_unprocess {
   fi
 
   # Get timestamp of tempfile
-  temp_post_time=$(stat -c %Y "$temp_post")
+  temp_post_time=$(stat_func "$temp_post")
 
   # Edit tempfile
   $EDITOR "$temp_post"
 
   # Verify that timestamp changed after editing, or abort
-  temp_post_time_check=$(stat -c %Y "$temp_post")
+  temp_post_time_check=$(stat_func "$temp_post")
   if [[ "$temp_post_time" != "$temp_post_time_check" ]] ; then
     cp "${temp_post}" "$post_file" 
     rm "${temp_post}"
@@ -309,11 +326,11 @@ function make_post_temp {
   fi
 
   # Check timestamp before editing file
-  temp_post_time=$(stat -c %Y "$temp_post")
+  temp_post_time=$(stat_func "$temp_post")
   $EDITOR "$temp_post"
 
   # Verify that timestamp changed after editing, or abort
-  temp_post_time_check=$(stat -c %Y "$temp_post")
+  temp_post_time_check=$(stat_func "$temp_post")
 
   # If we saved a change, create the new file
   if [[ "$temp_post_time" != "$temp_post_time_check" ]] ; then
@@ -523,6 +540,7 @@ function update_burrow {
 }
 
 function main {
+  check_coreutils "$@"
   parse_input "$@"
 
   if [[ $arg_shortlist -gt 0 ]]; then
