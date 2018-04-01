@@ -429,7 +429,7 @@ function make_rss {
   for f in $search_list; do
     filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||")"
     date="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { print $1; }')"
-    title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' )"
+    title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | sed 's/.*/\L&/; s/[a-z]*/\u&/g' )"
     {
       echo "<item>" # >> ""
       echo "  <title>${title}</title>"
