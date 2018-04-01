@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="v1.3.3"
+version="v1.4.0"
 
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
@@ -24,7 +24,7 @@ config_git_push=false
 config_autoindent=true
 config_file_rss="rss.xml"
 config_gopher_name="My Gopher Hole"
-config_gopher_desc="Gopher Hole Description"
+config_gopher_desc="Description"
 config_rss_num_entries="10"
 config_phlog_autorss=false
 
