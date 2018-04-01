@@ -22,6 +22,11 @@ config_topics_usedate=false
 config_git_commit=false
 config_git_push=false
 config_autoindent=true
+config_file_rss="rss.xml"
+config_gopher_name="My Gopher Hole"
+config_gopher_desc="Gopher Hole Description"
+config_rss_num_entries="10"
+config_phlog_autorss=false
 
 # vars from flags
 flag_debug=0
@@ -58,6 +63,7 @@ COMMANDS:
       phlog                   Create new phlog entry
       recipe                  Add new recipe to box
       topic                   Add or update a topic
+      rss                     Generate an rss feed of recent phlog entries
       create-config           Create a default configuration file
       edit-config             Edit your configuration file
       update-git              Silently pulls gopher git repo if it exists
@@ -130,6 +136,7 @@ function parse_input {
       "edit-config") arg_edit_config=1 ;;
       "update-git") arg_update_git=1 ;;
       "update-burrow") arg_update_burrow=1 ;;
+      "rss") arg_rss=1 ;;
       *) echo "Unknown command: $arg";;
     esac
   done
@@ -386,6 +393,41 @@ function make_post {
   make_post_git
 }
 
+function make_rss {
+  search_list=$(find "${config_dir_gopher}${config_dir_phlog}" \
+    -mindepth 1 \
+    -type f \
+    -not -samefile "${config_dir_gopher}${config_dir_phlog}/gophermap" \
+    -print | \
+      sort -r | \
+      head -n "${config_rss_num_entries}")
+
+  {
+    echo "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel>"
+    echo "<title>${config_gopher_name}</title>"
+    echo "<link>gopher://${config_gopher_server}${config_gopher_root}</link>"
+    echo "<description>${config_gopher_desc}</description>" 
+  }  > "${config_dir_gopher}${config_file_rss}"
+
+  for f in $search_list; do
+    filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||")"
+    date="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { print $1; }')"
+    title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' )"
+    {
+      echo "<item>" # >> ""
+      echo "  <title>${title}</title>"
+      echo "  <link>gopher://${config_gopher_server}/0${config_gopher_root}${config_dir_phlog}/${filename}</link>"
+      echo "  <pubdate>$(date -R --date="${date}")</pubdate>"
+      echo "  <description><![CDATA[<pre>"
+      # curl -s --stderr - "${baseurl}/0${link}" | sed -n -f escapexml.sed >> "${xmlfile}"
+      echo "  </pre>]]></description>"
+      echo "</item>"
+    } >> "${config_dir_gopher}${config_file_rss}"
+  done
+  echo "</channel>" >> "${config_dir_gopher}${config_file_rss}"
+  echo "</rss>" >> "${config_dir_gopher}${config_file_rss}"
+}
+
 function edit_config {
   if [[ -f "$HOME/.config/burrow/config" ]]; then
     $EDITOR "$HOME/.config/burrow/config"
@@ -415,6 +457,7 @@ function create_config {
       echo "config_dir_phlog=\"phlog\""
       echo "config_phlog_gophermap=true"
       echo "config_phlog_usedate=true"
+      echo "config_phlog_autorss=false"
       echo ""
       echo "config_dir_recipebox=\"recipebox\""
       echo "config_recipebox_gophermap=false"
@@ -428,6 +471,11 @@ function create_config {
       echo "config_git_push=false"
       echo ""
       echo "config_autoindent=true"
+      echo ""
+      echo "config_file_rss=\"rss.xml\""
+      echo "config_gopher_name=\"My Gopher Hole\""
+      echo "config_gopher_desc=\"Gopher Hole Description\""
+      echo "config_rss_num_entries=\"10\""
     } >> "$config"
   else
     echo "Configuration already exists."
@@ -478,7 +526,7 @@ function main {
   parse_input "$@"
 
   if [[ $arg_shortlist -gt 0 ]]; then
-    out="phlog topic recipe edit-config create-config update-burrow update-git -v -h -d"
+    out="phlog topic recipe rss edit-config create-config update-burrow update-git -v -h -d"
     # include long options only if using gnu getopt
     getopt -T > /dev/null
     if [ $? -eq 4 ]; then
@@ -543,6 +591,10 @@ function main {
       "$config_phlog_gophermap" \
       "$config_phlog_usedate" \
       true
+  fi
+
+  if [[ ${arg_rss} -gt 0 ]]; then
+    make_rss
   fi
 }
 
