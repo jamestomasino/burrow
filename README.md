@@ -117,7 +117,7 @@ config_file_rss="rss.xml"              # filename of RSS feed
 config_gopher_name="My Gopher Hole"    # used in RSS feed output
 config_gopher_desc="Description"       # used in RSS feed output
 config_rss_num_entries="10"            # number of entries to inclued in RSS feed
-config_phlog_autorss=true              # automatically generate RSS feed
+config_phlog_autorss=false             # automatically generate RSS feed
 
 ```
 
