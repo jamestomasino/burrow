@@ -428,7 +428,7 @@ function make_rss {
   {
     printf "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel>\n"
     printf "<title>%s</title>\n" "$config_gopher_name"
-    printf "<link>gopher://%s%s/</link>\n" "$config_gopher_server" "$config_gopher_root"
+    printf "<link>gopher://%s%s</link>\n" "$config_gopher_server" "$config_gopher_root"
     printf "<description>%s</description>\n" "$config_gopher_desc"
   }  > "${config_dir_gopher}${config_file_rss}"
 
