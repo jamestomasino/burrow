@@ -422,7 +422,7 @@ function make_rss {
   search_list=$(find "${config_dir_gopher}${config_dir_phlog}" \
     -mindepth 1 \
     -type f \
-    -not -samefile "${config_dir_gopher}${config_dir_phlog}/gophermap" \
+    '!' -samefile "${config_dir_gopher}${config_dir_phlog}/gophermap" \
     -print | \
       sort -r | \
       head -n "${config_rss_num_entries}")
