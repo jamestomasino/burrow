@@ -10,12 +10,6 @@
 
 * bash 4+
 
-#### Optional
-
-* GNU getopt
-
-  * Required to use long named switches, like --version or --help instead of -v and -h.
-
 ### Install
 
 `sudo make install`

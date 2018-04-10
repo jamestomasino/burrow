@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1117
 
 version="v1.4.0"
 
@@ -41,7 +42,6 @@ flag_noautoindent=0
 
 # vars from args
 arg_options="hvd"
-arg_longoptions="help,version,debug,noautoindent"
 arg_shortlist=0
 arg_recipe=0
 arg_phlog=0
@@ -75,9 +75,9 @@ COMMANDS:
       update-burrow           Auto-update this application in its local folder
 
 OPTIONAL FLAGS:
-  -h, --help                  Show this help
-  -v, --version               Show current version info
-  -d, --debug                 Debug mode
+  -h                          Show this help
+  -v                          Show current version info
+  -d                          Debug mode
 
 END
 }
@@ -95,19 +95,7 @@ function check_coreutils {
 }
 
 function parse_input {
-  if getopt -T > /dev/null -eq 4; then
-    # GNU enhanced getopt is available
-    parsed=$(getopt \
-      --options=$arg_options \
-      --longoptions=$arg_longoptions \
-      --name "$0" \
-      -- "$@")
-  else
-    # Original getopt is available
-    parsed=$(getopt $arg_options "$@")
-  fi
-
-  if [[ $? -ne 0 ]]; then
+  if ! parsed=$(getopt $arg_options "$@"); then
     die "Invalid input" 2
   fi
 
@@ -115,20 +103,16 @@ function parse_input {
 
   while true; do
     case "$1" in
-      -h|--help)
+      -h)
         flag_help=1
         shift
         ;;
-      -v|--version)
+      -v)
         flag_version=1
         shift
         ;;
-      -d|--debug)
+      -d)
         flag_debug=1
-        shift
-        ;;
-      --noautoindent)
-        flag_noautoindent=1
         shift
         ;;
       --)
@@ -574,11 +558,6 @@ function main {
 
   if [[ $arg_shortlist -gt 0 ]]; then
     out="phlog topic recipe rss edit-config create-config update-burrow update-git -v -h -d"
-    # include long options only if using gnu getopt
-    getopt -T > /dev/null
-    if [ $? -eq 4 ]; then
-      out="${out} --version --help --debug --noautointent"
-    fi
     die "${out}" 0
   fi
 
