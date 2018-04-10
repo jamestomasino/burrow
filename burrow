@@ -154,17 +154,17 @@ function parse_input {
       "update-git") arg_update_git=1 ;;
       "update-burrow") arg_update_burrow=1 ;;
       "rss") arg_rss=1 ;;
-      *) echo "Unknown command: $arg";;
+      *) printf "Unknown command: %s\n" "$arg";;
     esac
   done
 }
 
 function day_suffix {
   case $(date +%d) in
-    01|1|21|31) echo "st";;
-    02|2|22)    echo "nd";;
-    03|3|23)    echo "rd";;
-    *)          echo "th";;
+    01|1|21|31) printf "st";;
+    02|2|22)    printf "nd";;
+    03|3|23)    printf "rd";;
+    *)          printf "th";;
   esac
 }
 
@@ -191,9 +191,9 @@ function die {
   # output message to stdout or stderr based on code
   if [[ ! -z "$msg" ]]; then
     if [[ "$code" == 0 ]]; then
-      echo "$msg"
+      printf "%s\n" "$msg"
     else
-      echo "$msg" >&2
+      printf "%s\n" "$msg" >&2
     fi
   fi
   exit "$code"
@@ -250,18 +250,36 @@ function make_post_gophermap {
   if $use_gophermap; then
     if $use_date; then
       # if using gophermap and date
-      echo -e "1$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+      printf "1%s - %s\t%s\t%s\t%s\n" \
+        "$(date +%Y-%m-%d)" \
+        "$title" \
+        "$post_file_path" \
+        "$config_gopher_server" \
+        "$config_gopher_port" > "$temp_gophermap"
     else
       # if using gophermap but not date
-      echo -e "1$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+      printf "1%s\t%s\t%s\t%s\n" \
+        "$title" \
+        "$post_file_path" \
+        "$config_gopher_server" \
+        "$config_gopher_port" > "$temp_gophermap"
     fi
   else
     if $use_date; then
       # if not using gophermap but using date
-      echo -e "0$(date +%Y-%m-%d) - $title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+      printf "0%s - %s\t%s\t%s\t%s\n" \
+        "$(date +%Y-%m-%d)" \
+        "$title" \
+        "$post_file_path" \
+        "$config_gopher_server" \
+        "$config_gopher_port" > "$temp_gophermap"
     else
       # if not using gophermap or date
-      echo -e "0$title\t${post_file_path}\t${config_gopher_server}\t${config_gopher_port}" > "$temp_gophermap"
+      printf "0%s\t%s\t%s\t%s\n" \
+        "$title" \
+        "$post_file_path" \
+        "$config_gopher_server" \
+        "$config_gopher_port" > "$temp_gophermap"
     fi
   fi
 
@@ -317,14 +335,11 @@ function make_post_temp {
     cat "${post_dir}/.template" > "$temp_post"
   else
     {
-      echo "----------------------------------------"
-      echo "$title"
+      printf "----------------------------------------\n%s\n" "$title"
       if $use_date; then
         date +"%B %d$(day_suffix), %Y"
       fi
-      echo "----------------------------------------"
-      echo ""
-      echo ""
+      printf "----------------------------------------\n\n\n"
     } > "$temp_post"
   fi
 
@@ -350,7 +365,7 @@ function make_post_paths {
   type_gophermap="${config_dir_gopher}${post_type}/gophermap"
 
   if $use_gophermap; then
-    title_slug=$(echo "${title}" | \
+    title_slug=$(printf "%s" "$title" | \
       sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
     if $use_date; then
       post_dir="${config_dir_gopher}${post_type}/$(date +%Y%m%d)-$title_slug"
@@ -364,7 +379,7 @@ function make_post_paths {
   else
     post_dir="${config_dir_gopher}${post_type}"
     post_path="${config_gopher_root}${post_type}"
-    title_slug=$(echo "${title}" | \
+    title_slug=$(printf "%s" "$title" | \
       sed -E -e 's/[^[:alnum:]]/-/g' -e 's/^-+|-+$//g' | tr -s '-' | tr '[:upper:]' '[:lower:]')
     if $use_date; then
       title_slug="$(date +%Y%m%d)-${title_slug}"
@@ -428,10 +443,10 @@ function make_rss {
       head -n "${config_rss_num_entries}")
 
   {
-    echo "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel>"
-    echo "<title>${config_gopher_name}</title>"
-    echo "<link>gopher://${config_gopher_server}${config_gopher_root}</link>"
-    echo "<description>${config_gopher_desc}</description>" 
+    printf "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel>\n"
+    printf "<title>%s</title>\n" "$config_gopher_name"
+    printf "<link>gopher://%s%s/</link>\n" "$config_gopher_server" "$config_gopher_root"
+    printf "<description>%s</description>\n" "$config_gopher_desc"
   }  > "${config_dir_gopher}${config_file_rss}"
 
   for f in $search_list; do
@@ -440,24 +455,24 @@ function make_rss {
     title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | sed 's/.*/\L&/; s/[a-z]*/\u&/g' )"
 
     {
-      echo "<item>"
-      echo "  <title>${title}</title>"
-      echo "  <link>gopher://${config_gopher_server}/0${config_gopher_root}${config_dir_phlog}/${filename}</link>"
-      echo "  <pubdate>$(date -R --date="${date}")</pubdate>"
-      echo "  <description><![CDATA[<pre>"
+      printf "<item>\n"
+      printf "  <title>%s</title>\n" "$title"
+      printf "  <link>gopher://%s/0%s%s/%s</link>\n" "$config_gopher_server" "$config_gopher_root" "$config_dir_phlog" "$filename"
+      printf "  <pubdate>%s</pubdate>\n" "$(date -R --date="${date}")"
+      printf "  <description><![CDATA[<pre>\n"
       if grep -q "gophermap$" <<< $filename
       then
         awk -F"\t" '/^[2-9\+GITs].*\t/ {print $0; next} /^h.*\t/ { l=substr($1, 2, length($1)); print l "\n    " substr($2, 5, length($2)); next } /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); print l "\n    gopher://" $3 "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
       else
         cat "$f"
       fi
-      echo "  </pre>]]></description>"
-      echo "</item>"
+      printf "  </pre>]]></description>\n"
+      printf "</item>\n"
     } >> "${config_dir_gopher}${config_file_rss}"
   done
 
-  echo "</channel>" >> "${config_dir_gopher}${config_file_rss}"
-  echo "</rss>" >> "${config_dir_gopher}${config_file_rss}"
+  printf "</channel>\n" >> "${config_dir_gopher}${config_file_rss}"
+  printf "</rss>\n" >> "${config_dir_gopher}${config_file_rss}"
 }
 
 function edit_config {
