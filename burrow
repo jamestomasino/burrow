@@ -95,8 +95,7 @@ function check_coreutils {
 }
 
 function parse_input {
-  getopt -T > /dev/null
-  if [ $? -eq 4 ]; then
+  if getopt -T > /dev/null -eq 4; then
     # GNU enhanced getopt is available
     parsed=$(getopt \
       --options=$arg_options \
@@ -335,11 +334,11 @@ function make_post_temp {
     cat "${post_dir}/.template" > "$temp_post"
   else
     {
-      printf "----------------------------------------\n%s\n" "$title"
+      printf "%s\n%s\n" "----------------------------------------" "$title"
       if $use_date; then
         date +"%B %d$(day_suffix), %Y"
       fi
-      printf "----------------------------------------\n\n\n"
+      printf "%s\n\n\n" "----------------------------------------"
     } > "$temp_post"
   fi
 
