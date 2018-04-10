@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1117
 
-version="v1.4.0"
+version="v1.4.1"
 
 shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
