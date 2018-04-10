@@ -127,5 +127,9 @@ _Note: This file is a valid Bash script and will be sourced upon load._
 Pull requests are welcome. For major changes, please open an issue first to
 discuss what you would like to change.
 
+## Feature Requests
+
+[![Feature Requests](http://feathub.com/jamestomasino/burrow?format=svg)](http://feathub.com/jamestomasino/burrow)
+
 ## License
 [GPL3](LICENSE)
