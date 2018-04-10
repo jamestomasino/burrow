@@ -52,11 +52,11 @@ arg_update_git=0
 arg_update_burrow=0
 
 # silence directory movements
-pushd () {
+push_d () {
   command pushd "$@" 2>/dev/null 1>&2
 }
 
-popd () {
+pop_d () {
   command popd 2>/dev/null 1>&2
 }
 
@@ -210,7 +210,7 @@ trap finish EXIT
 
 function make_post_git {
   if [[ $config_git_commit != false ]]; then
-    pushd "$config_dir_gopher"
+    push_d "$config_dir_gopher"
     git add "${post_dir}/gophermap" "${post_file}" "$type_gophermap"
     if $update_root; then
       git add "${config_dir_gopher}/gophermap"
@@ -223,7 +223,7 @@ function make_post_git {
       git pull
       git push
     fi
-    popd
+    pop_d
   fi
 }
 
@@ -465,7 +465,7 @@ function make_rss {
       else
         cat "$f"
       fi
-      printf "  </pre>]]></description>\n"
+      printf "</pre>]]></description>\n"
       printf "</item>\n"
     } >> "${config_dir_gopher}${config_file_rss}"
   done
@@ -529,11 +529,11 @@ function create_config {
 }
 
 function update_git {
-  pushd "$config_dir_gopher"
+  push_d "$config_dir_gopher"
   if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]; then
     git pull -q
   fi
-  popd
+  pop_d
 }
 
 function update_burrow {
@@ -544,7 +544,7 @@ function update_burrow {
     [[ ${burrow_src} != /* ]] && burrow_src="${burrow_dir}/${burrow_src}"
   done
   burrow_dir="$( cd -P "$( dirname "${burrow_src}" )" && pwd )"
-  pushd "${burrow_dir}"
+  push_d "${burrow_dir}"
   if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]; then
     read -r -p "Do you want to update your burrow git repository? [y/N] " response
     if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
@@ -565,7 +565,7 @@ function update_burrow {
       die "Aborting." 0
     fi
   fi
-  popd
+  pop_d
 }
 
 function main {
