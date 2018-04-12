@@ -85,7 +85,7 @@ check_coreutils () {
     }
   else
     stat_func () {
-      stat -Lnqr "$1" | awk '{print $9}'
+      stat -Lnqr "$1" | awk '{print $10}'
     }
   fi
 }
