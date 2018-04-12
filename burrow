@@ -132,7 +132,7 @@ parse_input () {
       "edit-config") arg_edit_config=1 ;;
       "update-git") arg_update_git=1 ;;
       "rss") arg_rss=1 ;;
-      *) printf "Unknown command: %s\n" "$arg";;
+      *) printf "Unknown command: %s\\n" "$arg";;
     esac
   done
 }
@@ -152,7 +152,7 @@ update_gopher_root () {
     "$newdate" \
     "$config_gopher_server" \
     "$config_gopher_port")
-  sed -i'' "s|.*Last\ Updated:.*|${newString}|" "${config_dir_gopher}gophermap"
+  sed -i'' "s|.*Last\\ Updated:.*|${newString}|" "${config_dir_gopher}gophermap"
 }
 
 check_directory () {
@@ -173,9 +173,9 @@ die () {
   # output message to stdout or stderr based on code
   if [ ! -z "$msg" ]; then
     if [ "$code" -eq 0 ]; then
-      printf "%s\n" "$msg"
+      printf "%s\\n" "$msg"
     else
-      printf "%s\n" "$msg" >&2
+      printf "%s\\n" "$msg" >&2
     fi
   fi
   exit "$code"
@@ -232,7 +232,7 @@ make_post_gophermap () {
   if $use_gophermap; then
     if $use_date; then
       # if using gophermap and date
-      printf "1%s - %s\t%s\t%s\t%s\n" \
+      printf "1%s - %s\\t%s\\t%s\\t%s\\n" \
         "$(date +%Y-%m-%d)" \
         "$title" \
         "$post_file_path" \
@@ -240,7 +240,7 @@ make_post_gophermap () {
         "$config_gopher_port" > "$temp_gophermap"
     else
       # if using gophermap but not date
-      printf "1%s\t%s\t%s\t%s\n" \
+      printf "1%s\\t%s\\t%s\\t%s\\n" \
         "$title" \
         "$post_file_path" \
         "$config_gopher_server" \
@@ -249,7 +249,7 @@ make_post_gophermap () {
   else
     if $use_date; then
       # if not using gophermap but using date
-      printf "0%s - %s\t%s\t%s\t%s\n" \
+      printf "0%s - %s\\t%s\\t%s\\t%s\\n" \
         "$(date +%Y-%m-%d)" \
         "$title" \
         "$post_file_path" \
@@ -257,7 +257,7 @@ make_post_gophermap () {
         "$config_gopher_port" > "$temp_gophermap"
     else
       # if not using gophermap or date
-      printf "0%s\t%s\t%s\t%s\n" \
+      printf "0%s\\t%s\\t%s\\t%s\\n" \
         "$title" \
         "$post_file_path" \
         "$config_gopher_server" \
@@ -274,7 +274,7 @@ make_post_gophermap () {
   rm "$temp_gophermap"
 
   # Sort gophermap alphabetically if not using date
-  if [ "$use_gophermap" -a ! "$use_date" ]; then
+  if [ "$use_gophermap" ] && [ ! "$use_date" ]; then
     sort -fo "$type_gophermap" "$type_gophermap"
   fi
 }
@@ -286,7 +286,7 @@ make_post_unprocess () {
 
     # If using gophermaps, unformat it for editing
     if $use_gophermap; then
-      awk -F"\t" '/^[0-9h\+GIThs].*\t/ {print $0; next} {sub(/^i/, "", $1);print $1}' "$post_file" > "${temp_post}"
+      awk -F"\\t" '/^[0-9h\+GIThs].*\t/ {print $0; next} {sub(/^i/, "", $1);print $1}' "$post_file" > "${temp_post}"
     else
       # copy existing post to tempfile
       cp "$post_file" "${temp_post}"
@@ -321,11 +321,11 @@ make_post_temp () {
     cat "${post_dir}/.template" > "$temp_post"
   else
     {
-      printf "%s\n%s\n" "----------------------------------------" "$title"
+      printf "%s\\n%s\\n" "----------------------------------------" "$title"
       if $use_date; then
         date +"%B %d$(day_suffix), %Y"
       fi
-      printf "%s\n\n\n" "----------------------------------------"
+      printf "%s\\n\\n\\n" "----------------------------------------"
     } > "$temp_post"
   fi
 
@@ -426,15 +426,15 @@ make_rss () {
     -mindepth 1 \
     -type f \
     -print | \
-      grep -v "^\./gophermap$" |
+      grep -v "^\\./gophermap$" |
       sort -r | \
       head -n "${config_rss_num_entries}")
 
   {
-    printf "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel>\n"
-    printf "<title>%s</title>\n" "$config_gopher_name"
-    printf "<link>gopher://%s%s</link>\n" "$config_gopher_server" "$config_gopher_root"
-    printf "<description>%s</description>\n" "$config_gopher_desc"
+    printf '<?xml version="1.0"?><rss version="2.0"><channel>'
+    printf "\\n<title>%s</title>\\n" "$config_gopher_name"
+    printf "<link>gopher://%s%s</link>\\n" "$config_gopher_server" "$config_gopher_root"
+    printf "<description>%s</description>\\n" "$config_gopher_desc"
   }  > "${config_dir_gopher}${config_file_rss}"
 
   for f in $search_list; do
@@ -443,24 +443,24 @@ make_rss () {
     title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | sed 's/.*/\L&/; s/[a-z]*/\u&/g' )"
 
     {
-      printf "<item>\n"
-      printf "  <title>%s</title>\n" "$title"
-      printf "  <link>gopher://%s/0%s%s/%s</link>\n" "$config_gopher_server" "$config_gopher_root" "$config_dir_phlog" "$filename"
-      printf "  <pubdate>%s</pubdate>\n" "$(date -d "$date" +"%A, %d %b %Y %H:%M:%S %z" )"
-      printf "  <description><![CDATA[<pre>\n"
+      printf "<item>\\n"
+      printf "  <title>%s</title>\\n" "$title"
+      printf "  <link>gopher://%s/0%s%s/%s</link>\\n" "$config_gopher_server" "$config_gopher_root" "$config_dir_phlog" "$filename"
+      printf "  <pubdate>%s</pubdate>\\n" "$(date -d "$date" +"%A, %d %b %Y %H:%M:%S %z" )"
+      printf "  <description><![CDATA[<pre>\\n"
       if printf "%s" "$filename" | grep -q "gophermap$"
       then
-        awk -F"\t" '/^[2-9\+GITs].*\t/ {print $0; next} /^h.*\t/ { l=substr($1, 2, length($1)); print l "\n    " substr($2, 5, length($2)); next } /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); print l "\n    gopher://" $3 "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
+        awk -F"\\t" '/^[2-9\+GITs].*\t/ {print $0; next} /^h.*\t/ { l=substr($1, 2, length($1)); print l "\n    " substr($2, 5, length($2)); next } /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); print l "\n    gopher://" $3 "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
       else
         cat "$f"
       fi
-      printf "</pre>]]></description>\n"
-      printf "</item>\n"
+      printf "</pre>]]></description>\\n"
+      printf "</item>\\n"
     } >> "${config_dir_gopher}${config_file_rss}"
   done
   pop_d
-  printf "</channel>\n" >> "${config_dir_gopher}${config_file_rss}"
-  printf "</rss>\n" >> "${config_dir_gopher}${config_file_rss}"
+  printf "</channel>\\n" >> "${config_dir_gopher}${config_file_rss}"
+  printf "</rss>\\n" >> "${config_dir_gopher}${config_file_rss}"
 }
 
 edit_config () {
@@ -483,37 +483,37 @@ create_config () {
     config="$HOME/.config/burrow/config"
     mkdir -p "$(dirname "$config")"
     {
-      printf "config_dir_gopher=\"%s/gopher/\"\n" "$HOME"
-      printf "\n"
-      printf "config_gopher_server=\"sdf.org\"\n"
-      printf "config_gopher_port=\"70\"\n"
-      printf "config_gopher_root=\"/users/username/\"\n"
-      printf "\n"
-      printf "config_dir_phlog=\"phlog\"\n"
-      printf "config_phlog_gophermap=true\n"
-      printf "config_phlog_usedate=true\n"
-      printf "config_phlog_autorss=false\n"
-      printf "\n"
-      printf "config_dir_recipebox=\"recipebox\"\n"
-      printf "config_recipebox_gophermap=false\n"
-      printf "config_recipebox_usedate=false\n"
-      printf "\n"
-      printf "config_dir_topics=\"topics\"\n"
-      printf "config_topics_gophermap=true\n"
-      printf "config_topics_usedate=false\n"
-      printf "\n"
-      printf "config_git_commit=false\n"
-      printf "config_git_push=false\n"
-      printf "\n"
-      printf "config_autoindent=true\n"
-      printf "\n"
-      printf "config_file_rss=\"rss.xml\"\n"
-      printf "config_gopher_name=\"My Gopher Hole\"\n"
-      printf "config_gopher_desc=\"Gopher Hole Description\"\n"
-      printf "config_rss_num_entries=\"10\"\n"
+      printf "config_dir_gopher=\"%s/gopher/\"\\n" "$HOME"
+      printf "\\n"
+      printf "config_gopher_server=\"sdf.org\"\\n"
+      printf "config_gopher_port=\"70\"\\n"
+      printf "config_gopher_root=\"/users/username/\"\\n"
+      printf "\\n"
+      printf "config_dir_phlog=\"phlog\"\\n"
+      printf "config_phlog_gophermap=true\\n"
+      printf "config_phlog_usedate=true\\n"
+      printf "config_phlog_autorss=false\\n"
+      printf "\\n"
+      printf "config_dir_recipebox=\"recipebox\"\\n"
+      printf "config_recipebox_gophermap=false\\n"
+      printf "config_recipebox_usedate=false\\n"
+      printf "\\n"
+      printf "config_dir_topics=\"topics\"\\n"
+      printf "config_topics_gophermap=true\\n"
+      printf "config_topics_usedate=false\\n"
+      printf "\\n"
+      printf "config_git_commit=false\\n"
+      printf "config_git_push=false\\n"
+      printf "\\n"
+      printf "config_autoindent=true\\n"
+      printf "\\n"
+      printf "config_file_rss=\"rss.xml\"\\n"
+      printf "config_gopher_name=\"My Gopher Hole\"\\n"
+      printf "config_gopher_desc=\"Gopher Hole Description\"\\n"
+      printf "config_rss_num_entries=\"10\"\\n"
     } >> "$config"
   else
-    printf "Configuration already exists.\n"
+    printf "Configuration already exists.\\n"
   fi
 }
 
@@ -535,7 +535,7 @@ main () {
   fi
 
   if [ $flag_version -gt 0 ]; then
-    printf "%s\n" "$version"
+    printf "%s\\n" "$version"
   fi
 
   if [ $flag_help -gt 0 ]; then
