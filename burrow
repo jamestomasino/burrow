@@ -1,9 +1,7 @@
-#!/usr/bin/env bash
-# shellcheck disable=SC1117
+#!/bin/sh
 
 version="v1.4.1"
 
-shopt -s extglob
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 
 # vars from config
@@ -30,7 +28,7 @@ config_rss_num_entries="10"
 config_phlog_autorss=false
 
 # coreutils function wrappers
-function stat_func {
+stat_func () {
   return 0
 }
 
@@ -49,18 +47,18 @@ arg_topic=0
 arg_create_config=0
 arg_edit_config=0
 arg_update_git=0
-arg_update_burrow=0
+arg_rss=0
 
 # silence directory movements
 push_d () {
-  command pushd "$@" 2>/dev/null 1>&2
+  cd "$@" || exit
 }
 
 pop_d () {
-  command popd 2>/dev/null 1>&2
+  cd - || exit
 }
 
-function show_help {
+show_help () {
   cat > /dev/stdout << END
 burrow [options] [commands]
 
@@ -72,7 +70,6 @@ COMMANDS:
       create-config           Create a default configuration file
       edit-config             Edit your configuration file
       update-git              Silently pulls gopher git repo if it exists
-      update-burrow           Auto-update this application in its local folder
 
 OPTIONAL FLAGS:
   -h                          Show this help
@@ -82,19 +79,19 @@ OPTIONAL FLAGS:
 END
 }
 
-function check_coreutils {
+check_coreutils () {
   if stat -c"%U" /dev/null >/dev/null 2>/dev/null ; then
-    function stat_func {
+    stat_func () {
       stat -c %Y "$1"
     }
   else
-    function stat_func {
+    stat_func () {
       stat -Lnqr "$1" | awk '{print $9}'
     }
   fi
 }
 
-function parse_input {
+parse_input () {
   if ! parsed=$(getopt $arg_options "$@"); then
     die "Invalid input" 2
   fi
@@ -126,7 +123,7 @@ function parse_input {
   done
 
   for arg in "$@"; do
-    argc=${arg,,}
+    argc=$(printf "%s" "$arg" | tr '[:upper:]' '[:lower:]')
     case $argc in
       "shortlist") arg_shortlist=1 ;;
       "phlog") arg_phlog=1 ;;
@@ -135,14 +132,13 @@ function parse_input {
       "create-config") arg_create_config=1 ;;
       "edit-config") arg_edit_config=1 ;;
       "update-git") arg_update_git=1 ;;
-      "update-burrow") arg_update_burrow=1 ;;
       "rss") arg_rss=1 ;;
       *) printf "Unknown command: %s\n" "$arg";;
     esac
   done
 }
 
-function day_suffix {
+day_suffix () {
   case $(date +%d) in
     01|1|21|31) printf "st";;
     02|2|22)    printf "nd";;
@@ -151,29 +147,33 @@ function day_suffix {
   esac
 }
 
-function update_gopher_root {
+update_gopher_root () {
   newdate=$(date +"%B %d$(day_suffix), %Y")
-  sed -i'' "s|.*Last\ Updated:.*|i     ==== Last Updated: $newdate ====\t\t${config_gopher_server}\t${config_gopher_port}|" "${config_dir_gopher}gophermap"
+  newString=$(printf "i     ==== Last Updated: %s ====\\t\\t%s\\t%s" \
+    "$newdate" \
+    "$config_gopher_server" \
+    "$config_gopher_port")
+  sed -i'' "s|.*Last\ Updated:.*|${newString}|" "${config_dir_gopher}gophermap"
 }
 
-function check_directory {
-  if [[ ! -d "$1" ]]; then
+check_directory () {
+  if [ ! -d "$1" ]; then
     die "Missing directory: $1 aborting." 1
   fi
 }
 
-function die {
+die () {
   msg="$1"
   code="$2"
 
   # exit code defaults to 1
-  if [[ "$code" =~ /^[0-9]+$/ ]] ; then
+  if printf "%s" "$code" | grep -q '^[0-9]+$'; then
     code=1
   fi
 
   # output message to stdout or stderr based on code
-  if [[ ! -z "$msg" ]]; then
-    if [[ "$code" == 0 ]]; then
+  if [ ! -z "$msg" ]; then
+    if [ "$code" -eq 0 ]; then
       printf "%s\n" "$msg"
     else
       printf "%s\n" "$msg" >&2
@@ -182,18 +182,18 @@ function die {
   exit "$code"
 }
 
-function finish {
-  if [[ -f "$temp_gophermap" ]]; then
+finish () {
+  if [ -f "$temp_gophermap" ]; then
     rm "$temp_gophermap"
   fi
-  if [[ -f "$temp_post" ]]; then
+  if [ -f "$temp_post" ]; then
     rm "$temp_post"
   fi
 }
 trap finish EXIT
 
-function make_post_git {
-  if [[ $config_git_commit != false ]]; then
+make_post_git () {
+  if $config_git_commit; then
     push_d "$config_dir_gopher"
     git add "${post_dir}/gophermap" "${post_file}" "$type_gophermap"
     if $update_root; then
@@ -203,7 +203,7 @@ function make_post_git {
       git add "${config_dir_gopher}${config_file_rss}"
     fi
     git commit -m "$post_type: $title"
-    if [[ $config_git_push != false ]]; then
+    if $config_git_push; then
       git pull
       git push
     fi
@@ -211,10 +211,10 @@ function make_post_git {
   fi
 }
 
-function make_post_process_formatting {
+make_post_process_formatting () {
   # If using gophermap, prefix all post lines with "i" except links
   if $use_gophermap; then
-    if [[ $config_autoindent ]] && [[ $flag_noautoindent == 0 ]]; then
+    if [ $config_autoindent -a $flag_noautoindent -eq 0 ]; then
       temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
         die "Failed to create temporary file" 1
       awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/^[0-9h\+GIThsi].*\t/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
@@ -224,7 +224,7 @@ function make_post_process_formatting {
   fi
 }
 
-function make_post_gophermap {
+make_post_gophermap () {
   # Create temporary gophermap for new post
   temp_gophermap=$(mktemp -t "$(basename "$0").gophermap.XXXXXXX") || \
     die "Failed to create temporary file" 1
@@ -266,18 +266,22 @@ function make_post_gophermap {
     fi
   fi
 
+
   cat "$type_gophermap" >> "$temp_gophermap"
+  if ! $use_date; then
+    sort -fk 1.2 "$temp_gophermap" -o "$temp_gophermap"
+  fi
   cat "$temp_gophermap" > "$type_gophermap"
   rm "$temp_gophermap"
 
   # Sort gophermap alphabetically if not using date
-  if [[ $use_gophermap ]] && [[ ! $use_date ]]; then
+  if [ "$use_gophermap" -a ! "$use_date" ]; then
     sort -fo "$type_gophermap" "$type_gophermap"
   fi
 }
 
-function make_post_unprocess {
-  if [[ $config_autoindent ]] && [[ $flag_noautoindent == 0 ]]; then
+make_post_unprocess () {
+  if [ $config_autoindent -a $flag_noautoindent -eq 0 ]; then
     temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
       die "Failed to create temporary file" 1
 
@@ -299,7 +303,7 @@ function make_post_unprocess {
 
   # Verify that timestamp changed after editing, or abort
   temp_post_time_check=$(stat_func "$temp_post")
-  if [[ "$temp_post_time" != "$temp_post_time_check" ]] ; then
+  if [ "$temp_post_time" -ne "$temp_post_time_check" ] ; then
     cp "${temp_post}" "$post_file" 
     rm "${temp_post}"
   else
@@ -308,13 +312,13 @@ function make_post_unprocess {
   fi
 }
 
-function make_post_temp {
+make_post_temp () {
   # Create a tempfile to do our work
   temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
     die "Failed to create temporary file" 1
 
   # Populate tempfile with either template or default template
-  if [[ -f "${post_dir}/.template" ]]; then
+  if [ -f "${post_dir}/.template" ]; then
     cat "${post_dir}/.template" > "$temp_post"
   else
     {
@@ -334,7 +338,7 @@ function make_post_temp {
   temp_post_time_check=$(stat_func "$temp_post")
 
   # If we saved a change, create the new file
-  if [[ "$temp_post_time" != "$temp_post_time_check" ]] ; then
+  if [ "$temp_post_time" -ne "$temp_post_time_check" ] ; then
     mkdir -p "${post_dir}"
     cp "${temp_post}" "$post_file"
     rm "${temp_post}"
@@ -344,7 +348,7 @@ function make_post_temp {
   fi
 }
 
-function make_post_paths {
+make_post_paths () {
   type_gophermap="${config_dir_gopher}${post_type}/gophermap"
 
   if $use_gophermap; then
@@ -372,7 +376,7 @@ function make_post_paths {
   fi
 }
 
-function make_post {
+make_post () {
   query="$1"
   post_type="$2"
   use_gophermap="$3"
@@ -383,22 +387,23 @@ function make_post {
   check_directory "$config_dir_gopher"
   check_directory "${config_dir_gopher}${post_type}"
 
-  read -r -e -p "$query" title
-  if [[ $title == "" ]]; then
+  printf "%s" "$query"
+  read -r title
+  if [ -z "$title" ]; then
     die "Cancelled." 0
   fi
 
   make_post_paths
 
-  if [[ -f $post_file ]]; then
+  if [ -f "$post_file" ]; then
     make_post_unprocess
-    if [[ "$?" == 1 ]]; then
+    if [ "$?" -eq 1 ]; then
       die "Aborted edit" 0
     fi
     make_post_process_formatting
   else
     make_post_temp
-    if [[ "$?" == 1 ]]; then
+    if [ "$?" -eq 1 ]; then
       die "Aborted post" 0
     fi
     make_post_process_formatting
@@ -416,12 +421,13 @@ function make_post {
   make_post_git
 }
 
-function make_rss {
-  search_list=$(find "${config_dir_gopher}${config_dir_phlog}" \
+make_rss () {
+  push_d "${config_dir_gopher}${config_dir_phlog}"
+  search_list=$(find . \
     -mindepth 1 \
     -type f \
-    '!' -samefile "${config_dir_gopher}${config_dir_phlog}/gophermap" \
     -print | \
+      grep -v "^\./gophermap$" |
       sort -r | \
       head -n "${config_rss_num_entries}")
 
@@ -434,16 +440,16 @@ function make_rss {
 
   for f in $search_list; do
     filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||")"
-    date="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { print $1; }')"
+    date="$(printf "%s" "$filename" | sed 's|^\./||' | awk 'BEGIN { FS="-" } { print $1; }')"
     title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | sed 's/.*/\L&/; s/[a-z]*/\u&/g' )"
 
     {
       printf "<item>\n"
       printf "  <title>%s</title>\n" "$title"
       printf "  <link>gopher://%s/0%s%s/%s</link>\n" "$config_gopher_server" "$config_gopher_root" "$config_dir_phlog" "$filename"
-      printf "  <pubdate>%s</pubdate>\n" "$(date -R --date="${date}")"
+      printf "  <pubdate>%s</pubdate>\n" "$(date -d "$date" +"%A, %d %b %Y %H:%M:%S %z" )"
       printf "  <description><![CDATA[<pre>\n"
-      if grep -q "gophermap$" <<< "$filename"
+      if printf "%s" "$filename" | grep -q "gophermap$"
       then
         awk -F"\t" '/^[2-9\+GITs].*\t/ {print $0; next} /^h.*\t/ { l=substr($1, 2, length($1)); print l "\n    " substr($2, 5, length($2)); next } /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); print l "\n    gopher://" $3 "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
       else
@@ -453,32 +459,32 @@ function make_rss {
       printf "</item>\n"
     } >> "${config_dir_gopher}${config_file_rss}"
   done
-
+  pop_d
   printf "</channel>\n" >> "${config_dir_gopher}${config_file_rss}"
   printf "</rss>\n" >> "${config_dir_gopher}${config_file_rss}"
 }
 
-function edit_config {
-  if [[ -f "$HOME/.config/burrow/config" ]]; then
+edit_config () {
+  if [ -f "$HOME/.config/burrow/config" ]; then
     $EDITOR "$HOME/.config/burrow/config"
-  elif [[ -f "$HOME/.config/burrow" ]]; then
+  elif [ -f "$HOME/.config/burrow" ]; then
     $EDITOR "$HOME/.config/burrow"
-  elif [[ -f "$HOME/.burrow" ]]; then
+  elif [ -f "$HOME/.burrow" ]; then
     $EDITOR "$HOME/.burrow"
   else
     die "No configuration found" 0
   fi
 }
 
-function create_config {
-  if [[ ! -f "$HOME/.config/burrow/config" ]] && \
-    [[ ! -f "$HOME/.config/burrow" ]] && \
-    [[ ! -f "$HOME/.burrow" ]]; then
+create_config () {
+  if [ ! -f "$HOME/.config/burrow/config" ] && \
+    [ ! -f "$HOME/.config/burrow" ] && \
+    [ ! -f "$HOME/.burrow" ]; then
 
     config="$HOME/.config/burrow/config"
     mkdir -p "$(dirname "$config")"
     {
-      printf "config_dir_gopher=\"%s/gopher/\"" "$HOME\n"
+      printf "config_dir_gopher=\"%s/gopher/\"\n" "$HOME"
       printf "\n"
       printf "config_gopher_server=\"sdf.org\"\n"
       printf "config_gopher_port=\"70\"\n"
@@ -512,90 +518,54 @@ function create_config {
   fi
 }
 
-function update_git {
+update_git () {
   push_d "$config_dir_gopher"
-  if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]; then
-    git pull -q
+  if git rev-parse --is-inside-work-tree 2> /dev/null; then
+    git pull -q > /dev/null 2> /dev/null
   fi
   pop_d
 }
 
-function update_burrow {
-  burrow_src="${BASH_SOURCE[0]}"
-  while [ -h "${burrow_src}" ]; do
-    burrow_dir="$( cd -P "$( dirname "${burrow_src}" )" && pwd )"
-    burrow_src="$(readlink "${burrow_src}")"
-    [[ ${burrow_src} != /* ]] && burrow_src="${burrow_dir}/${burrow_src}"
-  done
-  burrow_dir="$( cd -P "$( dirname "${burrow_src}" )" && pwd )"
-  push_d "${burrow_dir}"
-  if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]]; then
-    read -r -p "Do you want to update your burrow git repository? [y/N] " response
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-    then
-      git pull -q
-    else
-      die "Aborting." 0
-    fi
-  else
-    github_src="https://raw.githubusercontent.com/jamestomasino/burrow/master/"
-    read -r -p "Do you want to fetch the latest burrow executable? [y/N] " response
-    if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
-    then
-      for filename in ./burrow*; do
-        curl -sfLO "${github_src}${filename}"
-      done
-    else
-      die "Aborting." 0
-    fi
-  fi
-  pop_d
-}
-
-function main {
+main () {
   check_coreutils "$@"
   parse_input "$@"
 
-  if [[ $arg_shortlist -gt 0 ]]; then
-    out="phlog topic recipe rss edit-config create-config update-burrow update-git -v -h -d"
+  if [ $arg_shortlist -gt 0 ]; then
+    out="phlog topic recipe rss edit-config create-config update-git -v -h -d"
     die "${out}" 0
   fi
 
-  if [[ $flag_version -gt 0 ]]; then
+  if [ $flag_version -gt 0 ]; then
     printf "%s\n" "$version"
   fi
 
-  if [[ $flag_help -gt 0 ]]; then
+  if [ $flag_help -gt 0 ]; then
     show_help
   fi
 
-  if [[ $flag_debug -gt 0 ]]; then
+  if [ $flag_debug -gt 0 ]; then
     set -x
   fi
 
-  if [[ $arg_create_config -gt 0 ]]; then
+  if [ $arg_create_config -gt 0 ]; then
     create_config
   fi
 
-  if [[ $arg_edit_config -gt 0 ]]; then
+  if [ $arg_edit_config -gt 0 ]; then
     edit_config
   fi
 
   for configfile in $configfiles; do
-    if [[ -f $configfile ]]; then
-      source "$configfile"
+    if [ -f "$configfile" ]; then
+      . "$configfile"
     fi
   done
 
-  if [[ ${arg_update_burrow} -gt 0 ]]; then
-    update_burrow
-  fi
-
-  if [[ ${arg_update_git} -gt 0 ]]; then
+  if [ $arg_update_git -gt 0 ]; then
     update_git
   fi
 
-  if [[ ${arg_recipe} -gt 0 ]]; then
+  if [ $arg_recipe -gt 0 ]; then
     make_post "What is the name of your recipe? " \
       "$config_dir_recipebox" \
       "$config_recipebox_gophermap" \
@@ -604,7 +574,7 @@ function main {
       false
   fi
 
-  if [[ ${arg_topic} -gt 0 ]]; then
+  if [ $arg_topic -gt 0 ]; then
     make_post "What is the name of your topic? " \
       "$config_dir_topics" \
       "$config_topics_gophermap" \
@@ -613,7 +583,7 @@ function main {
       false
   fi
 
-  if [[ ${arg_phlog} -gt 0 ]]; then
+  if [ $arg_phlog -gt 0 ]; then
     make_post "Enter a title for your post: " \
       "$config_dir_phlog" \
       "$config_phlog_gophermap" \
@@ -622,7 +592,7 @@ function main {
       ${config_phlog_autorss}
   fi
 
-  if [[ ${arg_rss} -gt 0 ]]; then
+  if [ $arg_rss -gt 0 ]; then
     make_rss
   fi
 }
