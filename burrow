@@ -51,11 +51,11 @@ arg_rss=0
 
 # silence directory movements
 push_d () {
-  cd "$@" || exit
+  cd "$@" > /dev/null 2> /dev/null || exit
 }
 
 pop_d () {
-  cd - || exit
+  cd - > /dev/null 2> /dev/null || exit
 }
 
 show_help () {
@@ -520,7 +520,7 @@ create_config () {
 
 update_git () {
   push_d "$config_dir_gopher"
-  if git rev-parse --is-inside-work-tree 2> /dev/null; then
+  if [ "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]; then
     git pull -q > /dev/null 2> /dev/null
   fi
   pop_d
