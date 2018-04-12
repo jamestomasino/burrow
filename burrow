@@ -36,7 +36,6 @@ stat_func () {
 flag_debug=0
 flag_version=0
 flag_help=0
-flag_noautoindent=0
 
 # vars from args
 arg_options="hvd"
@@ -214,7 +213,7 @@ make_post_git () {
 make_post_process_formatting () {
   # If using gophermap, prefix all post lines with "i" except links
   if $use_gophermap; then
-    if [ $config_autoindent -a $flag_noautoindent -eq 0 ]; then
+    if [ $config_autoindent ]; then
       temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
         die "Failed to create temporary file" 1
       awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/^[0-9h\+GIThsi].*\t/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
@@ -281,7 +280,7 @@ make_post_gophermap () {
 }
 
 make_post_unprocess () {
-  if [ $config_autoindent -a $flag_noautoindent -eq 0 ]; then
+  if [ $config_autoindent ]; then
     temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
       die "Failed to create temporary file" 1
 
