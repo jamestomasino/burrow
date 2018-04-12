@@ -1,4 +1,4 @@
-.TH BURROW 1 "9 Apr 2018" "version 1.4.1"
+.TH BURROW 1 "11 Apr 2018" "version 1.5.0"
 .SH NAME
 burrow \- a helper for building and managing a gopher hole
 .SH SYNOPSIS
@@ -52,16 +52,6 @@ of your gopher hole. It is appropriate for use by a cron job.
 .TP
 .B git-pull
 which is useful for crons.
-.TP
-.B update-burrow
-Burrow will attempt to auto-update. If the local folder where burrow is
-installed is a git repository, burrow will pull the latest commit from the
-remote branch. If the local directory is not a git remote, burrow will attempt
-to update local files with their counterpart on the Github remote repository.
-The local directory will only attempt to update files in this way which are
-named
-.I burrow
-or some variation of that name.
 .SH OPTIONS
 .TP
 .B -v
