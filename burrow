@@ -446,7 +446,7 @@ make_rss () {
       printf "<item>\\n"
       printf "  <title>%s</title>\\n" "$title"
       printf "  <link>gopher://%s/0%s%s/%s</link>\\n" "$config_gopher_server" "$config_gopher_root" "$config_dir_phlog" "$filename"
-      printf "  <pubdate>%s</pubdate>\\n" "$(date -d "$date" +"%A, %d %b %Y %H:%M:%S %z" )"
+      printf "  <pubdate>%s</pubdate>\\n" "$(date -d "$date" +"%a, %d %b %Y %T %z" )"
       printf "  <description><![CDATA[<pre>\\n"
       if printf "%s" "$filename" | grep -q "gophermap$"
       then
