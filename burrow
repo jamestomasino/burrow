@@ -80,12 +80,21 @@ END
 
 check_coreutils () {
   if stat -c"%U" /dev/null >/dev/null 2>/dev/null ; then
+    # GNU environment
     stat_func () {
       stat -c %Y "$1"
     }
+    date_func () {
+      date -d "$1" +"%a, %d %b %Y %T %z"
+    }
   else
+    # BSD environment
     stat_func () {
       stat -Lnqr "$1" | awk '{print $10}'
+    }
+    date_func () {
+      # $1 will be in YYYYMMDD format
+      printf "%s" "$1" | awk 'BEGIN {n = split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec",month)} { y=substr($0, 0, 4); m=substr($0,5,2); gsub ("^0*", "", m); d=substr($0,7,2); print d, month[m], y, "00:00:00 +0000"}'
     }
   fi
 }
@@ -446,7 +455,7 @@ make_rss () {
       printf "<item>\\n"
       printf "  <title>%s</title>\\n" "$title"
       printf "  <link>gopher://%s/0%s%s/%s</link>\\n" "$config_gopher_server" "$config_gopher_root" "$config_dir_phlog" "$filename"
-      printf "  <pubdate>%s</pubdate>\\n" "$(date -d "$date" +"%a, %d %b %Y %T %z" )"
+      printf "  <pubdate>%s</pubdate>\\n" "$(date_func "$date")"
       printf "  <description><![CDATA[<pre>\\n"
       if printf "%s" "$filename" | grep -q "gophermap$"
       then
