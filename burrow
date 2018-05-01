@@ -26,6 +26,7 @@ config_gopher_name="My Gopher Hole"
 config_gopher_desc="Description"
 config_rss_num_entries="10"
 config_phlog_autorss=false
+config_gophermap_omitserver=false
 
 # coreutils function wrappers
 stat_func () {
@@ -240,40 +241,69 @@ make_post_gophermap () {
   # Add appropriate link into temp gophermap
   if $use_gophermap; then
     if $use_date; then
-      # if using gophermap and date
-      printf "1%s - %s\\t%s\\t%s\\t%s\\n" \
-        "$(date +%Y-%m-%d)" \
-        "$title" \
-        "$post_file_path" \
-        "$config_gopher_server" \
-        "$config_gopher_port" > "$temp_gophermap"
+      if $config_gophermap_omitserver; then
+        # if using gophermap and date, no server
+        printf "1%s - %s\\t%s\\n" \
+          "$(date +%Y-%m-%d)" \
+          "$title" \
+          "$post_file_path" > "$temp_gophermap"
+      else
+        # if using gophermap and date
+        printf "1%s - %s\\t%s\\t%s\\t%s\\n" \
+          "$(date +%Y-%m-%d)" \
+          "$title" \
+          "$post_file_path" \
+          "$config_gopher_server" \
+          "$config_gopher_port" > "$temp_gophermap"
+      fi
     else
-      # if using gophermap but not date
-      printf "1%s\\t%s\\t%s\\t%s\\n" \
-        "$title" \
-        "$post_file_path" \
-        "$config_gopher_server" \
-        "$config_gopher_port" > "$temp_gophermap"
+      if $config_gophermap_omitserver; then
+        # if using gophermap but not date, no server
+        printf "1%s\\t%s\\n" \
+          "$title" \
+          "$post_file_path" > "$temp_gophermap"
+      else
+        # if using gophermap but not date
+        printf "1%s\\t%s\\t%s\\t%s\\n" \
+          "$title" \
+          "$post_file_path" \
+          "$config_gopher_server" \
+          "$config_gopher_port" > "$temp_gophermap"
+      fi
     fi
   else
     if $use_date; then
-      # if not using gophermap but using date
-      printf "0%s - %s\\t%s\\t%s\\t%s\\n" \
-        "$(date +%Y-%m-%d)" \
-        "$title" \
-        "$post_file_path" \
-        "$config_gopher_server" \
-        "$config_gopher_port" > "$temp_gophermap"
+      if $config_gophermap_omitserver; then
+        # if not using gophermap but using date, no server
+        printf "0%s - %s\\t%s\\n" \
+          "$(date +%Y-%m-%d)" \
+          "$title" \
+          "$post_file_path" > "$temp_gophermap"
+      else
+        # if not using gophermap but using date
+        printf "0%s - %s\\t%s\\t%s\\t%s\\n" \
+          "$(date +%Y-%m-%d)" \
+          "$title" \
+          "$post_file_path" \
+          "$config_gopher_server" \
+          "$config_gopher_port" > "$temp_gophermap"
+      fi
     else
-      # if not using gophermap or date
-      printf "0%s\\t%s\\t%s\\t%s\\n" \
-        "$title" \
-        "$post_file_path" \
-        "$config_gopher_server" \
-        "$config_gopher_port" > "$temp_gophermap"
+      if $config_gophermap_omitserver; then
+        # if not using gophermap or date, no server
+        printf "0%s\\t%s\\n" \
+          "$title" \
+          "$post_file_path" > "$temp_gophermap"
+      else
+        # if not using gophermap or date
+        printf "0%s\\t%s\\t%s\\t%s\\n" \
+          "$title" \
+          "$post_file_path" \
+          "$config_gopher_server" \
+          "$config_gopher_port" > "$temp_gophermap"
+      fi
     fi
   fi
-
 
   cat "$type_gophermap" >> "$temp_gophermap"
   if ! $use_date; then
