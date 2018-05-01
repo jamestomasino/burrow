@@ -607,7 +607,7 @@ main () {
       "$config_dir_recipebox" \
       "$config_recipebox_gophermap" \
       "$config_recipebox_usedate" \
-      true
+      true \
       false
   fi
 
@@ -616,7 +616,7 @@ main () {
       "$config_dir_topics" \
       "$config_topics_gophermap" \
       "$config_topics_usedate" \
-      true
+      true \
       false
   fi
 
@@ -625,7 +625,7 @@ main () {
       "$config_dir_phlog" \
       "$config_phlog_gophermap" \
       "$config_phlog_usedate" \
-      true
+      true \
       ${config_phlog_autorss}
   fi
 
