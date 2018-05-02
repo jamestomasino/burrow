@@ -477,7 +477,7 @@ make_rss () {
   }  > "${config_dir_gopher}${config_file_rss}"
 
   for f in $search_list; do
-    filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||")"
+    filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||" | sed "s|^\./||")"
     date="$(printf "%s" "$filename" | sed 's|^\./||' | awk 'BEGIN { FS="-" } { print $1; }')"
     title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')"
     {
