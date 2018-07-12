@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="v1.5.1"
+version="v1.5.2"
 
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 
@@ -343,7 +343,7 @@ make_post_unprocess () {
   temp_post_time=$(stat_func "$temp_post")
 
   # Edit tempfile
-  $EDITOR "$temp_post"
+  ${EDITOR:-vim} "$temp_post"
 
   # Verify that timestamp changed after editing, or abort
   temp_post_time_check=$(stat_func "$temp_post")
@@ -377,7 +377,7 @@ make_post_temp () {
 
   # Check timestamp before editing file
   temp_post_time=$(stat_func "$temp_post")
-  $EDITOR "$temp_post"
+  ${EDITOR:-vim} "$temp_post"
 
   # Verify that timestamp changed after editing, or abort
   temp_post_time_check=$(stat_func "$temp_post")
@@ -514,11 +514,11 @@ make_rss () {
 
 edit_config () {
   if [ -f "$HOME/.config/burrow/config" ]; then
-    $EDITOR "$HOME/.config/burrow/config"
+    ${EDITOR:-vim} "$HOME/.config/burrow/config"
   elif [ -f "$HOME/.config/burrow" ]; then
-    $EDITOR "$HOME/.config/burrow"
+    ${EDITOR:-vim} "$HOME/.config/burrow"
   elif [ -f "$HOME/.burrow" ]; then
-    $EDITOR "$HOME/.burrow"
+    ${EDITOR:-vim} "$HOME/.burrow"
   else
     die "No configuration found" 0
   fi
