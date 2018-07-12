@@ -157,6 +157,7 @@ day_suffix () {
 }
 
 update_gopher_root () {
+  touch "${config_dir_gopher}gophermap"
   newdate=$(date +"%B %d$(day_suffix), %Y")
   newString=$(printf "i     ==== Last Updated: %s ====\\t\\t%s\\t%s" \
     "$newdate" \
