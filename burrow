@@ -307,10 +307,14 @@ make_post_gophermap () {
     fi
   fi
 
-  cat "$type_gophermap" >> "$temp_gophermap"
+  if [ -f "$type_gophermap" ]; then
+    cat "$type_gophermap" >> "$temp_gophermap"
+  fi
+
   if ! $use_date; then
     sort -fk 1.2 "$temp_gophermap" -o "$temp_gophermap"
   fi
+  touch "$type_gophermap"
   cat "$temp_gophermap" > "$type_gophermap"
   rm "$temp_gophermap"
 
