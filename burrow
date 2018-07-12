@@ -227,7 +227,9 @@ make_post_process_formatting () {
       temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
         die "Failed to create temporary file" 1
       awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/^[0-9h\+GIThsi].*\t/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
-      cp "${temp_post}" "${post_file}"
+      # create post file normally to respect umask
+      touch "${post_file}"
+      cat "${temp_post}" > "${post_file}"
       rm "${temp_post}"
     fi
   fi
@@ -342,7 +344,8 @@ make_post_unprocess () {
   # Verify that timestamp changed after editing, or abort
   temp_post_time_check=$(stat_func "$temp_post")
   if [ "$temp_post_time" -ne "$temp_post_time_check" ] ; then
-    cp "${temp_post}" "$post_file" 
+    touch "${post_file}"
+    cat "${temp_post}" > "${post_file}"
     rm "${temp_post}"
   else
     rm "${temp_post}"
@@ -378,7 +381,8 @@ make_post_temp () {
   # If we saved a change, create the new file
   if [ "$temp_post_time" -ne "$temp_post_time_check" ] ; then
     mkdir -p "${post_dir}"
-    cp "${temp_post}" "$post_file"
+    touch "${post_file}"
+    cat "${temp_post}" > "${post_file}"
     rm "${temp_post}"
   else
     rm "${temp_post}"
