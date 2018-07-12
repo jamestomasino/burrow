@@ -431,7 +431,10 @@ make_post () {
   create_rss="$6"
 
   check_directory "$config_dir_gopher"
-  check_directory "${config_dir_gopher}${post_type}"
+
+  if [ ! -d "${config_dir_gopher}${post_type}" ]; then
+    mkdir -p "${config_dir_gopher}${post_type}"
+  fi
 
   printf "%s" "$query"
   read -r title
