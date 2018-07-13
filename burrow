@@ -490,12 +490,18 @@ make_rss () {
 
   for f in $search_list; do
     filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||" | sed "s|^\./||")"
+    if printf "%s" "$filename" | grep -q "/gophermap"; then
+      item_type=1
+      filename="$( printf "%s" "$filename" | sed "s|gophermap$||")"
+    else 
+      item_type=0
+    fi
     date="$(printf "%s" "$filename" | sed 's|^\./||' | awk 'BEGIN { FS="-" } { print $1; }')"
     title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')"
     {
       printf "<item>\\n"
       printf "  <title>%s</title>\\n" "$title"
-      printf "  <link>gopher://%s/0%s%s/%s</link>\\n" "$config_gopher_server" "$config_gopher_root" "$config_dir_phlog" "$filename"
+      printf "  <link>gopher://%s/%s%s%s/%s</link>\\n" "$config_gopher_server" "$item_type" "$config_gopher_root" "$config_dir_phlog" "$filename"
       printf "  <pubdate>%s</pubdate>\\n" "$(date_func "$date")"
       printf "  <description><![CDATA[<pre>\\n"
       if printf "%s" "$filename" | grep -q "gophermap$"
