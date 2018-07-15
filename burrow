@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="v1.5.3"
+version="v1.5.4"
 
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 
@@ -504,7 +504,7 @@ make_rss () {
       printf "  <link>gopher://%s/%s%s%s/%s</link>\\n" "$config_gopher_server" "$item_type" "$config_gopher_root" "$config_dir_phlog" "$filename"
       printf "  <pubdate>%s</pubdate>\\n" "$(date_func "$date")"
       printf "  <description><![CDATA[<pre>\\n"
-      if printf "%s" "$filename" | grep -q "gophermap$"
+      if [ "$item_type" -eq 1 ]
       then
         awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" -F"\\t" '/^[2-9\+GITs].*\t/ {print $0; next} /^h.*\t/ { l=substr($1, 2, length($1)); print l "\n    " substr($2, 5, length($2)); next } /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); (!$3) ? s=server : s=$3; print l "\n    gopher://" s  "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
       else
