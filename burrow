@@ -633,6 +633,11 @@ main () {
   fi
 
   if [ $arg_root -gt 0 ]; then
+    # If we don't have a gophermap, create one to avoid
+    # accidentally sorting the file on first-time generation
+    if [ ! -f "${config_dir_gopher}/gophermap" ]; then
+      touch "${config_dir_gopher}/gophermap"
+    fi
     make_post "" \
        "" \
        true \
