@@ -1,4 +1,4 @@
-.TH BURROW 1 "15 Jul 2018" "version 1.5.4"
+.TH BURROW 1 "15 Jul 2018" "version 1.6.0"
 .SH NAME
 burrow \- a helper for building and managing a gopher hole
 .SH SYNOPSIS
@@ -28,6 +28,11 @@ $EDITOR. By default it will provide you a template, but you can override this
 by including a
 .I .template
 file in your topics directory.
+.TP
+.B root
+Open your gopher hole's root gophermap for editing. This will remove any
+type 'i' formatting and allow comments to be added in natural text. You will
+still need to create links in the proper gophermap formatting.
 .TP
 .B rss
 Automatically generate an RSS feed of your most recent phlog
