@@ -166,7 +166,7 @@ update_gopher_root () {
     "$newdate" \
     "$config_gopher_server" \
     "$config_gopher_port")
-  sed -i'' "s|.*Last\\ Updated:.*|${newString}|" "${config_dir_gopher}gophermap"
+  sed -i '' "s|.*Last\\ Updated:.*|${newString}|" "${config_dir_gopher}gophermap"
 }
 
 check_directory () {
