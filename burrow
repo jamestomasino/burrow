@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="v1.6.0"
+version="v1.6.1"
 
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 
@@ -509,7 +509,7 @@ make_rss () {
       item_type=0
     fi
     date="$(printf "%s" "$filename" | sed 's|^\./||' | awk 'BEGIN { FS="-" } { print $1; }')"
-    title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')"
+    title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | sed 's|/$||' | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')"
     {
       printf "<item>\\n"
       printf "  <title>%s</title>\\n" "$title"
