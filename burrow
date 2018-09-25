@@ -601,7 +601,7 @@ main () {
   parse_input "$@"
 
   if [ $arg_shortlist -gt 0 ]; then
-    out="phlog gophermap rss edit-config update-git -v -h -d"
+    out="phlog gophermap rss edit-config update-git"
     die "${out}" 0
   fi
 
