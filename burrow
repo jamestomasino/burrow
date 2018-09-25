@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="v1.7.0"
+version="v1.7.1"
 
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 

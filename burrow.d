@@ -12,13 +12,25 @@ _burrow()
     gopher_dir=$(burrow gopherdir)
     search_dir=${gopher_dir}
     if [ -n "${COMP_WORDS[2]}" ]; then
-      if [ -d "${gopher_dir}${COMP_WORDS[2]}" ]; then
-        search_dir="${gopher_dir}${COMP_WORDS[2]}"
+      partial_search_dir="${gopher_dir}${COMP_WORDS[2]}"
+      if [ -d "$partial_search_dir" ]; then
+        search_dir="$partial_search_dir"
+      else
+        partial_search_dir=$(dirname "$partial_search_dir")
+        if [ -d "$partial_search_dir" ]; then
+          search_dir="$partial_search_dir"
+        fi
       fi
     fi
     gophermaps=$(find "$search_dir" -mindepth 1 -maxdepth 1 -type f -name "gophermap" -print | sed "s|$gopher_dir||" | sed "s|gophermap$||" )
     directories=$(find "$search_dir" -mindepth 1 -maxdepth 1 -type d -print | sed "s|$gopher_dir||" )
-    COMPREPLY=( $( compgen -W "$gophermaps $directories" -- "$cur" ) )
+    local suggestions=( $( compgen -W "$gophermaps $directories" -- "$cur" ) )
+    if [ "${#suggestions[@]}" == "1" ]; then
+      local resp=$(echo ${suggestions[0]/%\ */})
+      COMPREPLY=("$resp")
+    else
+      COMPREPLY=("${suggestions[@]}")
+    fi
   else
     local helplist
     helplist=$(burrow shortlist)
