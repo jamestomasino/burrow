@@ -132,7 +132,7 @@ parse_input () {
       "gophermap")
         if [ $# -gt 1 ]; then
           shift
-          arg_gophermap="$1"
+          arg_gophermap="${1%/}/"
         else 
           arg_gophermap="/"
         fi
@@ -377,12 +377,15 @@ make_post_temp () {
   # Populate tempfile with either template or default template
   if [ -f "${post_dir}/.template" ]; then
     cat "${post_dir}/.template" > "$temp_post"
-  else
-    {
-      printf "%s\\n%s\\n" "----------------------------------------" "$title"
+  elif [ -n "$title" ]; then
+    { printf "%s\\n%s\\n" "----------------------------------------" "$title"
       if $use_date; then
         date +"%B %d$(day_suffix), %Y"
       fi
+      printf "%s\\n\\n\\n" "----------------------------------------"
+    } > "$temp_post"
+  else
+    { printf "%s\\n%s\\n" "----------------------------------------" "$post_type"
       printf "%s\\n\\n\\n" "----------------------------------------"
     } > "$temp_post"
   fi
@@ -446,6 +449,7 @@ make_post () {
   use_date="$4"
   update_root="$5"
   create_rss="$6"
+  create_gophermap="$7"
 
   check_directory "$config_dir_gopher"
 
@@ -477,7 +481,9 @@ make_post () {
       die "Aborted post" 0
     fi
     make_post_process_formatting
-    make_post_gophermap
+    if $create_gophermap; then
+      make_post_gophermap
+    fi
   fi
 
   if $update_root; then
@@ -631,16 +637,12 @@ main () {
   fi
 
   if [ "$arg_gophermap" != "" ]; then
-    # If we don't have a gophermap, create one to avoid
-    # accidentally sorting the file on first-time generation
-    if [ ! -f "${config_dir_gopher}${arg_gophermap}gophermap" ]; then
-      touch "${config_dir_gopher}${arg_gophermap}gophermap"
-    fi
     make_post "" \
        "${arg_gophermap}" \
        true \
        false \
        true \
+       false \
        false
   fi
 
@@ -650,7 +652,8 @@ main () {
       "$config_phlog_gophermap" \
       "$config_phlog_usedate" \
       true \
-      ${config_phlog_autorss}
+      ${config_phlog_autorss} \
+      true
   fi
 
   if [ $arg_rss -gt 0 ]; then
