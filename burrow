@@ -1,23 +1,17 @@
 #!/bin/sh
 
-version="v1.6.1"
+version="v1.7.0"
 
 configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 
 # vars from config
 config_dir_gopher="$HOME/gopher/"
-config_dir_recipebox="recipebox"
 config_dir_phlog="phlog"
-config_dir_topics="topics"
 config_gopher_server="sdf.org"
 config_gopher_port="70"
 config_gopher_root="/users/username/"
 config_phlog_gophermap=true
 config_phlog_usedate=true
-config_recipebox_gophermap=false
-config_recipebox_usedate=false
-config_topics_gophermap=true
-config_topics_usedate=false
 config_git_commit=false
 config_git_push=false
 config_autoindent=true
@@ -41,14 +35,12 @@ flag_help=0
 # vars from args
 arg_options="hvd"
 arg_shortlist=0
-arg_recipe=0
+arg_gopherdir=0
 arg_phlog=0
-arg_topic=0
-arg_create_config=0
 arg_edit_config=0
 arg_update_git=0
 arg_rss=0
-arg_root=0
+arg_gophermap=""
 
 # silence directory movements
 push_d () {
@@ -65,11 +57,8 @@ burrow [options] [commands]
 
 COMMANDS:
       phlog                   Create new phlog entry
-      recipe                  Add new recipe to box
-      topic                   Add or update a topic
-      root                    Edit your root gophermap
+      gophermap               Edit a gophermap
       rss                     Generate an rss feed of recent phlog entries
-      create-config           Create a default configuration file
       edit-config             Edit your configuration file
       update-git              Silently pulls gopher git repo if it exists
 
@@ -133,20 +122,39 @@ parse_input () {
     esac
   done
 
-  for arg in "$@"; do
-    argc=$(printf "%s" "$arg" | tr '[:upper:]' '[:lower:]')
+  while test $# -gt 0
+  do
+    argc=$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')
     case $argc in
-      "shortlist") arg_shortlist=1 ;;
-      "phlog") arg_phlog=1 ;;
-      "recipe") arg_recipe=1 ;;
-      "topic") arg_topic=1 ;;
-      "create-config") arg_create_config=1 ;;
-      "edit-config") arg_edit_config=1 ;;
-      "update-git") arg_update_git=1 ;;
-      "rss") arg_rss=1 ;;
-      "root") arg_root=1 ;;
-      *) printf "Unknown command: %s\\n" "$arg";;
+      "shortlist")
+        arg_shortlist=1
+        ;;
+      "gophermap")
+        if [ $# -gt 1 ]; then
+          shift
+          arg_gophermap="$1"
+        else 
+          arg_gophermap="/"
+        fi
+        ;;
+      "phlog") 
+        arg_phlog=1 
+        ;;
+      "gopherdir") 
+        arg_gopherdir=1 
+        ;;
+      "edit-config") 
+        arg_edit_config=1 
+        ;;
+      "update-git") 
+        arg_update_git=1 
+        ;;
+      "rss") 
+        arg_rss=1 
+        ;;
+      *) printf "Unknown command: %s\\n" "$argc";;
     esac
+    shift
   done
 }
 
@@ -547,7 +555,6 @@ create_config () {
   if [ ! -f "$HOME/.config/burrow/config" ] && \
     [ ! -f "$HOME/.config/burrow" ] && \
     [ ! -f "$HOME/.burrow" ]; then
-
     config="$HOME/.config/burrow/config"
     mkdir -p "$(dirname "$config")"
     {
@@ -562,14 +569,6 @@ create_config () {
       printf "config_phlog_usedate=true\\n"
       printf "config_phlog_autorss=false\\n"
       printf "\\n"
-      printf "config_dir_recipebox=\"recipebox\"\\n"
-      printf "config_recipebox_gophermap=false\\n"
-      printf "config_recipebox_usedate=false\\n"
-      printf "\\n"
-      printf "config_dir_topics=\"topics\"\\n"
-      printf "config_topics_gophermap=true\\n"
-      printf "config_topics_usedate=false\\n"
-      printf "\\n"
       printf "config_git_commit=false\\n"
       printf "config_git_push=false\\n"
       printf "\\n"
@@ -580,8 +579,6 @@ create_config () {
       printf "config_gopher_desc=\"Gopher Hole Description\"\\n"
       printf "config_rss_num_entries=\"10\"\\n"
     } >> "$config"
-  else
-    printf "Configuration already exists.\\n"
   fi
 }
 
@@ -598,7 +595,7 @@ main () {
   parse_input "$@"
 
   if [ $arg_shortlist -gt 0 ]; then
-    out="phlog topic recipe rss edit-config create-config update-git -v -h -d"
+    out="phlog gophermap rss edit-config update-git -v -h -d"
     die "${out}" 0
   fi
 
@@ -614,11 +611,8 @@ main () {
     set -x
   fi
 
-  if [ $arg_create_config -gt 0 ]; then
-    create_config
-  fi
-
   if [ $arg_edit_config -gt 0 ]; then
+    create_config
     edit_config
   fi
 
@@ -628,40 +622,26 @@ main () {
     fi
   done
 
+  if [ $arg_gopherdir -gt 0 ]; then
+    die "${config_dir_gopher}" 0
+  fi
+
   if [ $arg_update_git -gt 0 ]; then
     update_git
   fi
 
-  if [ $arg_root -gt 0 ]; then
+  if [ "$arg_gophermap" != "" ]; then
     # If we don't have a gophermap, create one to avoid
     # accidentally sorting the file on first-time generation
-    if [ ! -f "${config_dir_gopher}gophermap" ]; then
-      touch "${config_dir_gopher}gophermap"
+    if [ ! -f "${config_dir_gopher}${arg_gophermap}gophermap" ]; then
+      touch "${config_dir_gopher}${arg_gophermap}gophermap"
     fi
     make_post "" \
-       "" \
+       "${arg_gophermap}" \
        true \
        false \
        true \
        false
-  fi
-
-  if [ $arg_recipe -gt 0 ]; then
-    make_post "What is the name of your recipe? " \
-      "$config_dir_recipebox" \
-      "$config_recipebox_gophermap" \
-      "$config_recipebox_usedate" \
-      true \
-      false
-  fi
-
-  if [ $arg_topic -gt 0 ]; then
-    make_post "What is the name of your topic? " \
-      "$config_dir_topics" \
-      "$config_topics_gophermap" \
-      "$config_topics_usedate" \
-      true \
-      false
   fi
 
   if [ $arg_phlog -gt 0 ]; then

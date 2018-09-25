@@ -21,19 +21,11 @@ See the [Getting Started](https://github.com/jamestomasino/burrow/wiki/Getting-S
 
 ```bash
 burrow phlog          # create new phlog post
-burrow recipe         # add or update a recipe to box
-burrow topic          # add or update a topic file
+burrow gophermap      # edit a gophermap
 burrow rss            # generate a RSS feed of phlog entries
-burrow create-config  # generate a default config file
 burrow edit-config    # open your config file for editing
 burrow update-git     # pull latest git repo for gopher dir, if exists
 ```
-
-- `create-config` will auto-generate a configuration file at
-`$HOME/.config/burrow/config`. It will be populated by the default parameters
-listed below and provide an easy way to customize your configuration. At a
-minimum you should update your `config_dir_gopher` to point to the folder on
-your local computer where your gopher hole resides.
 
 - `edit-config` will open your burrow configuration file for easy editing.
 
@@ -41,15 +33,7 @@ your local computer where your gopher hole resides.
 `$EDITOR`. By default it will provide you a template, but you can override this
 by including a `.template` file in your phlog directory.
 
-- `recipe` will prompt for the name of your recipe, then open it in your default
-`$EDITOR`. By default it will provide you a template, but you can override this
-by including a `.template` file in your recipe box directory.
-
-- `topic` will prompt for the name of the topic, then open it in your default
-`$EDITOR`. By default it will provide you a template, but you can override this
-by including a `.template` file in your topics directory.
-
-- `root` will open your gopher hole's root gophermap for editing. This will
+- `gophermap` will open a gophermap file for editing. This will
 remove any `type i` formatting and allow comments to be added in natural text.
 You will still need to create links in the proper gophermap formatting.
 
@@ -84,14 +68,6 @@ config_gopher_root="/users/username/"  # path on gopher host to gopher site
 config_dir_phlog="phlog"               # relative path to phlog
 config_phlog_gophermap=true            # phlogs use gophermap format by default
 config_phlog_usedate=true              # use a date-stamp on phlog posts
-
-config_dir_recipebox="recipebox"       # relative path to recipe box
-config_recipebox_gophermap=false       # recipes use plain text by default
-config_recipebox_usedate=false         # do not use a date-stamp on recipe filenames
-
-config_dir_topics="topics"             # relative path to topics directory
-config_topics_gophermap=true           # topic notes use gophermap format by default
-config_topics_usedate=false            # do not use a date-stamp on topic filenames
 
 config_git_commit=false                # automatically commit changes if git repo
 config_git_push=false                  # automatically push changes if git repo
