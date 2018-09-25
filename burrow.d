@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
-_burrow()
-{
-
+_burrow() {
   local cur
   cur=${COMP_WORDS[COMP_CWORD]}
   if [ "${COMP_WORDS[1]}" == "gophermap" ]; then
