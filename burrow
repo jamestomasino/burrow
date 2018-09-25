@@ -193,7 +193,7 @@ die () {
   fi
 
   # output message to stdout or stderr based on code
-  if [ ! -z "$msg" ]; then
+  if [ -n "$msg" ]; then
     if [ "$code" -eq 0 ]; then
       printf "%s\\n" "$msg"
     else
@@ -419,7 +419,7 @@ make_post_paths () {
       post_dir="${config_dir_gopher}${post_type}/$(date +%Y%m%d)-$title_slug"
       post_path="${config_gopher_root}${post_type}/$(date +%Y%m%d)-$title_slug"
     else
-      if [ -z "title_slug" ]; then
+      if [ -z "$title_slug" ]; then
         post_dir="${config_dir_gopher}${post_type}"
         post_path="${config_gopher_root}${post_type}"
       else
@@ -457,7 +457,7 @@ make_post () {
     mkdir -p "${config_dir_gopher}${post_type}"
   fi
 
-  if [ ! -z "$query" ]; then
+  if [ -n "$query" ]; then
     printf "%s" "$query"
     read -r title
     if [ -z "$title" ]; then
@@ -624,6 +624,7 @@ main () {
 
   for configfile in $configfiles; do
     if [ -f "$configfile" ]; then
+      # shellcheck disable=SC1090
       . "$configfile"
     fi
   done
