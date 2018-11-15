@@ -37,6 +37,7 @@ arg_options="hvd"
 arg_shortlist=0
 arg_gopherdir=0
 arg_phlog=0
+arg_quickstart=0
 arg_edit_config=0
 arg_update_git=0
 arg_rss=0
@@ -59,6 +60,7 @@ COMMANDS:
       phlog                   Create new phlog entry
       gophermap               Edit a gophermap
       rss                     Generate an rss feed of recent phlog entries
+      quickstart              Create a new configuration file from prompts
       edit-config             Edit your configuration file
       update-git              Silently pulls gopher git repo if it exists
 
@@ -126,6 +128,9 @@ parse_input () {
   do
     argc=$(printf "%s" "$1" | tr '[:upper:]' '[:lower:]')
     case $argc in
+      "quickstart") 
+        arg_quickstart=1 
+        ;;
       "shortlist")
         arg_shortlist=1
         ;;
@@ -557,6 +562,91 @@ edit_config () {
   fi
 }
 
+getline () {
+  _var=${2:-_line}
+  _default="$3"
+  if [ -t 0 ]; then
+    if [ -n "$BASH_VERSION" ]; then
+      read -erp "$1: " "$_var"
+    else
+      printf "%s: " "$1"
+      IFS= read -r "$_var"
+    fi
+    # use default if possible when input is blank
+    _val=$(eval echo \$${_var})
+    if [ ! -n "$_val" ] && [ -n "$_default" ]; then
+      eval "$_var"="\"$_default\""
+    fi
+  fi
+}
+
+read_key () {
+  _key=
+  if [ -t 0 ]; then
+    if [ -z "$_stty" ]; then
+      _stty=$(stty -g)
+    fi
+    stty -echo -icanon min 1
+    _key=$(dd bs=1 count=1 2>/dev/null)
+    stty "$_stty"
+  fi
+}
+
+yesno () {
+  printf "%s [yN] " "$1"
+  read_key
+  case $_key in
+    y ) result=0 ;;
+    * ) result=1 ;;
+  esac
+  printf "\n"
+  return $result
+}
+
+quickstart () {
+  getline "Location of your local gopher directory ($config_dir_gopher)" config_dir_gopher "$config_dir_gopher"
+  getline "Hostname of your gopher server ($config_gopher_server)" config_gopher_server "$config_gopher_server"
+  getline "Port of your gopher server ($config_gopher_port)" config_gopher_port "$config_gopher_port"
+  getline "Root directory of your gopher site ($config_gopher_root)" config_gopher_root "$config_gopher_root"
+  if yesno "Create a phlog?"; then
+    getline "Phlog directory ($config_dir_phlog)" config_dir_phlog "$config_dir_phlog"
+    if yesno "Include gophermap"; then
+      config_phlog_gophermap=true
+    else
+      config_phlog_gophermap=false
+    fi
+    if yesno "Include the date in your phlog posts"; then
+      config_phlog_usedate=true
+    else
+      config_phlog_usedate=false
+    fi
+    if yesno "Auto-commit to git repo"; then
+      config_git_commit=true
+    else
+      config_git_commit=false
+    fi
+    if yesno "Auto-push to git remote"; then
+      config_git_push=true
+    else
+      config_git_push=false
+    fi
+    if yesno "Auto-indent posts?"; then
+      config_autoindent=true
+    else
+      config_autoindent=false
+    fi
+    if yesno "Auto-generate phlog RSS"; then
+      config_phlog_autorss=true
+      getline "Name of gopher hole ($config_gopher_name)" config_gopher_name "$config_gopher_name"
+      getline "Description of gopher hole ($config_gopher_desc)" config_gopher_desc "$config_gopher_desc"
+      getline "RSS filename ($config_file_rss)" config_file_rss "$config_file_rss"
+      getline "Number of RSS entries ($config_rss_num_entries)" config_rss_num_entries "$config_rss_num_entries"
+    else
+      config_phlog_autorss=false
+    fi
+  fi
+}
+
 create_config () {
   if [ ! -f "$HOME/.config/burrow/config" ] && \
     [ ! -f "$HOME/.config/burrow" ] && \
@@ -564,26 +654,26 @@ create_config () {
     config="$HOME/.config/burrow/config"
     mkdir -p "$(dirname "$config")"
     {
-      printf "config_dir_gopher=\"%s/gopher/\"\\n" "$HOME"
+      printf "config_dir_gopher=\"$config_dir_gopher\"\\n"
       printf "\\n"
-      printf "config_gopher_server=\"sdf.org\"\\n"
-      printf "config_gopher_port=\"70\"\\n"
-      printf "config_gopher_root=\"/users/username/\"\\n"
+      printf "config_gopher_server=\"$config_gopher_server\"\\n"
+      printf "config_gopher_port=\"$config_gopher_port\"\\n"
+      printf "config_gopher_root=\"$config_gopher_root\"\\n"
       printf "\\n"
-      printf "config_dir_phlog=\"phlog\"\\n"
-      printf "config_phlog_gophermap=true\\n"
-      printf "config_phlog_usedate=true\\n"
-      printf "config_phlog_autorss=false\\n"
+      printf "config_dir_phlog=\"$config_dir_phlog\"\\n"
+      printf "config_phlog_gophermap=$config_phlog_gophermap\\n"
+      printf "config_phlog_usedate=$config_phlog_usedate\\n"
+      printf "config_phlog_autorss=$config_phlog_autorss\\n"
       printf "\\n"
-      printf "config_git_commit=false\\n"
-      printf "config_git_push=false\\n"
+      printf "config_git_commit=$config_git_commit\\n"
+      printf "config_git_push=$config_git_push\\n"
       printf "\\n"
-      printf "config_autoindent=true\\n"
+      printf "config_autoindent=$config_autoindent\\n"
       printf "\\n"
-      printf "config_file_rss=\"rss.xml\"\\n"
-      printf "config_gopher_name=\"My Gopher Hole\"\\n"
-      printf "config_gopher_desc=\"Gopher Hole Description\"\\n"
-      printf "config_rss_num_entries=\"10\"\\n"
+      printf "config_file_rss=\"$config_file_rss\"\\n"
+      printf "config_gopher_name=\"$config_gopher_name\"\\n"
+      printf "config_gopher_desc=\"$config_gopher_desc\"\\n"
+      printf "config_rss_num_entries=\"$config_rss_num_entries\"\\n"
     } >> "$config"
   fi
 }
@@ -615,6 +705,11 @@ main () {
 
   if [ $flag_debug -gt 0 ]; then
     set -x
+  fi
+
+  if [ $arg_quickstart -gt 0 ]; then
+    quickstart
+    create_config
   fi
 
   if [ $arg_edit_config -gt 0 ]; then
