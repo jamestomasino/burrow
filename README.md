@@ -85,6 +85,11 @@ config_phlog_autorss=false             # automatically generate RSS feed
 
 _Note: This file is a valid Bash script and will be sourced upon load._
 
+## Disambiguity
+
+There is [another burrow project](https://github.com/sloumdrone/burrow) created
+by _sloumdrone_. His burrow project is a GUI gopher client. Please check it out!
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to
 discuss what you would like to change.
