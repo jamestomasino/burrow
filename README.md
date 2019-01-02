@@ -1,4 +1,4 @@
-# burrow ![status](https://img.shields.io/badge/status-working-green.svg?style=flat-square) ![license](https://img.shields.io/badge/license-GPL3-blue.svg?style=flat-square)
+# burrow ![status](https://travis-ci.com/jamestomasino/burrow.svg?branch=master) ![license](https://img.shields.io/badge/license-GPL3-blue.svg?style=flat-square)
 
 **burrow** is a helper for building and managing a gopher hole.
 
