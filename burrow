@@ -563,13 +563,14 @@ edit_config () {
 }
 
 yesno () {
-  printf "%s [yN]" "$1"
-  read -r yn
+  old_stty_cfg=$(stty -g)
+  stty raw -echo
+  yn=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
+  stty "$old_stty_cfg"
   case $yn in
     y ) result=0 ;;
     * ) result=1 ;;
   esac
-  printf "\n"
   return $result
 }
 
