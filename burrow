@@ -563,6 +563,7 @@ edit_config () {
 }
 
 yesno () {
+  printf "%s \\n" "$1"
   old_stty_cfg=$(stty -g)
   stty raw -echo
   yn=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
