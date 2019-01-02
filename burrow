@@ -520,7 +520,7 @@ make_rss () {
   }  > "${config_dir_gopher}${config_file_rss}"
 
   for f in $search_list; do
-    filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||" | sed "s|^\./||")"
+    filename="$(printf "%s" "$f" | sed "s|${config_dir_gopher}${config_dir_phlog}/||" | sed "s|^\\./||")"
     if printf "%s" "$filename" | grep -q "/gophermap"; then
       item_type=1
       filename="$( printf "%s" "$filename" | sed "s|gophermap$||")"
@@ -562,50 +562,30 @@ edit_config () {
   fi
 }
 
-getline () {
-  _var=${2:-_line}
-  _default="$3"
-  if [ -t 0 ]; then
-    printf "%s: " "$1"
-    IFS= read -r "$_var"
-    # use default if possible when input is blank
-    _val=$(eval echo \$${_var})
-    if [ ! -n "$_val" ] && [ -n "$_default" ]; then
-      eval "$_var"="\"$_default\""
-    fi
-  fi
-}
-
-read_key () {
-  _key=
-  if [ -t 0 ]; then
-    if [ -z "$_stty" ]; then
-      _stty=$(stty -g)
-    fi
-    stty -echo -icanon min 1
-    _key=$(dd bs=1 count=1 2>/dev/null)
-    stty "$_stty"
-  fi
-}
-
 yesno () {
-  printf "%s [yN] " "$1"
-  read_key
-  case $_key in
+  old_stty_cfg=$(stty -g)
+  stty raw -echo
+  yn=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
+  stty "$old_stty_cfg"
+  case $yn in
     y ) result=0 ;;
     * ) result=1 ;;
   esac
-  printf "\n"
   return $result
 }
 
 quickstart () {
-  getline "Location of your local gopher directory ($config_dir_gopher)" config_dir_gopher "$config_dir_gopher"
-  getline "Hostname of your gopher server ($config_gopher_server)" config_gopher_server "$config_gopher_server"
-  getline "Port of your gopher server ($config_gopher_port)" config_gopher_port "$config_gopher_port"
-  getline "Root directory of your gopher site ($config_gopher_root)" config_gopher_root "$config_gopher_root"
+  printf "Location of your local gopher directory?"
+  read -r config_dir_gopher
+  printf "Hostname of your gopher server?"
+  read -r config_gopher_server
+  printf "Port of your gopher server?"
+  read -r config_gopher_port
+  printf "Root directory of your gopher site?"
+  read -r config_gopher_root
   if yesno "Create a phlog?"; then
-    getline "Phlog directory ($config_dir_phlog)" config_dir_phlog "$config_dir_phlog"
+    printf "Phlog directory? (relative to root of gopher site)"
+    read -r config_dir_phlog
     if yesno "Include gophermap"; then
       config_phlog_gophermap=true
     else
@@ -633,10 +613,14 @@ quickstart () {
     fi
     if yesno "Auto-generate phlog RSS"; then
       config_phlog_autorss=true
-      getline "Name of gopher hole ($config_gopher_name)" config_gopher_name "$config_gopher_name"
-      getline "Description of gopher hole ($config_gopher_desc)" config_gopher_desc "$config_gopher_desc"
-      getline "RSS filename ($config_file_rss)" config_file_rss "$config_file_rss"
-      getline "Number of RSS entries ($config_rss_num_entries)" config_rss_num_entries "$config_rss_num_entries"
+      printf "Name of gopher hole?"
+      read -r config_gopher_name
+      printf "Description of gopher hole?"
+      read -r config_gopher_desc
+      printf "RSS filename?"
+      read -r config_file_rss
+      printf "Number of RSS entries?"
+      read -r config_rss_num_entries
     else
       config_phlog_autorss=false
     fi
