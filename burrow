@@ -166,7 +166,11 @@ update_gopher_root () {
     "$newdate" \
     "$config_gopher_server" \
     "$config_gopher_port")
-  sed -i '' "s|.*Last\\ Updated:.*|${newString}|" "${config_dir_gopher}gophermap"
+  if [ "$(uname)" = "Darwin" ]; then
+    sed -i '' "s|.*Last\\ Updated:.*|${newString}|" "${config_dir_gopher}gophermap"
+  else
+    sed -i'' "s|.*Last\\ Updated:.*|${newString}|" "${config_dir_gopher}gophermap"
+  fi
 }
 
 check_directory () {
