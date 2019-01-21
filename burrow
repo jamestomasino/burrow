@@ -579,15 +579,21 @@ yesno () {
 quickstart () {
   printf "Location of your local gopher directory? "
   read -r config_dir_gopher
+  # add trailing slash if missing
+  config_dir_gopher="${config_dir_gopher%/}/"
   printf "Hostname of your gopher server? "
   read -r config_gopher_server
   printf "Port of your gopher server? "
   read -r config_gopher_port
   printf "Root directory of your gopher site? "
   read -r config_gopher_root
+  # add trailing slash if missing
+  config_gopher_root="${config_gopher_root%/}/"
   if yesno "Create a phlog? "; then
     printf "Phlog directory? (relative to root of gopher site) "
     read -r config_dir_phlog
+    # remove leading slash if present
+    config_dir_phlog="${config_dir_phlog#/}"
     if yesno "Include gophermap? "; then
       config_phlog_gophermap=true
     else
