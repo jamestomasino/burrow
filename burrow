@@ -383,10 +383,7 @@ make_post_temp () {
   temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
     die "Failed to create temporary file" 1
 
-  # Populate tempfile with either template or default template
-  if [ -f "${post_dir}/.template" ]; then
-    cat "${post_dir}/.template" > "$temp_post"
-  elif [ -n "$title" ]; then
+  if [ -n "$title" ]; then
     { printf "%s\\n%s\\n" "----------------------------------------" "$title"
       if $use_date; then
         date +"%B %d$(day_suffix), %Y"

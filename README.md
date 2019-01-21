@@ -30,8 +30,7 @@ burrow update-git     # pull latest git repo for gopher dir, if exists
 - `edit-config` will open your burrow configuration file for easy editing.
 
 - `phlog` will prompt for the title of a new post, then open it in your default
-`$EDITOR`. By default it will provide you a template, but you can override this
-by including a `.template` file in your phlog directory.
+`$EDITOR`.
 
 - `gophermap` will open a gophermap file for editing. This will
 remove any `type i` formatting and allow comments to be added in natural text.
