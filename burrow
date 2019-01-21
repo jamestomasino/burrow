@@ -567,64 +567,61 @@ edit_config () {
 }
 
 yesno () {
-  printf "%s \\n" "$1"
-  old_stty_cfg=$(stty -g)
-  stty raw -echo
-  yn=$(while ! head -c 1 | grep -i '[ny]'; do true; done)
-  stty "$old_stty_cfg"
+  printf "%s " "$1"
+  read -r yn
   case $yn in
-    y ) result=0 ;;
+    [Yy]* ) result=0 ;;
     * ) result=1 ;;
   esac
   return $result
 }
 
 quickstart () {
-  printf "Location of your local gopher directory?"
+  printf "Location of your local gopher directory? "
   read -r config_dir_gopher
-  printf "Hostname of your gopher server?"
+  printf "Hostname of your gopher server? "
   read -r config_gopher_server
-  printf "Port of your gopher server?"
+  printf "Port of your gopher server? "
   read -r config_gopher_port
-  printf "Root directory of your gopher site?"
+  printf "Root directory of your gopher site? "
   read -r config_gopher_root
-  if yesno "Create a phlog?"; then
-    printf "Phlog directory? (relative to root of gopher site)"
+  if yesno "Create a phlog? "; then
+    printf "Phlog directory? (relative to root of gopher site) "
     read -r config_dir_phlog
-    if yesno "Include gophermap"; then
+    if yesno "Include gophermap? "; then
       config_phlog_gophermap=true
     else
       config_phlog_gophermap=false
     fi
-    if yesno "Include the date in your phlog posts"; then
+    if yesno "Include the date in your phlog posts? "; then
       config_phlog_usedate=true
     else
       config_phlog_usedate=false
     fi
-    if yesno "Auto-commit to git repo"; then
+    if yesno "Auto-commit to git repo? "; then
       config_git_commit=true
     else
       config_git_commit=false
     fi
-    if yesno "Auto-push to git remote"; then
+    if yesno "Auto-push to git remote? "; then
       config_git_push=true
     else
       config_git_push=false
     fi
-    if yesno "Auto-indent posts?"; then
+    if yesno "Auto-indent posts? "; then
       config_autoindent=true
     else
       config_autoindent=false
     fi
-    if yesno "Auto-generate phlog RSS"; then
+    if yesno "Auto-generate phlog RSS? "; then
       config_phlog_autorss=true
-      printf "Name of gopher hole?"
+      printf "Name of gopher hole? "
       read -r config_gopher_name
-      printf "Description of gopher hole?"
+      printf "Description of gopher hole? "
       read -r config_gopher_desc
-      printf "RSS filename?"
+      printf "RSS filename? "
       read -r config_file_rss
-      printf "Number of RSS entries?"
+      printf "Number of RSS entries? "
       read -r config_rss_num_entries
     else
       config_phlog_autorss=false
