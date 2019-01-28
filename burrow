@@ -1,8 +1,8 @@
 #!/bin/sh
 
-version="v1.7.5"
+version="v1.7.6"
 
-configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow /etc/burrow/config"
+configfiles="/etc/burrow/config $HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 
 # vars from config
 config_dir_gopher="$HOME/gopher/"
