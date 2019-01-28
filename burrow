@@ -2,7 +2,7 @@
 
 version="v1.7.5"
 
-configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
+configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow /etc/burrow/config"
 
 # vars from config
 config_dir_gopher="$HOME/gopher/"
