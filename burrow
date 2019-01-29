@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="v1.7.6"
+version="v1.7.7"
 
 configfiles="/etc/burrow/config $HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 
@@ -21,6 +21,7 @@ config_gopher_desc="Description"
 config_rss_num_entries="10"
 config_phlog_autorss=false
 config_gophermap_omitserver=false
+config_gophernicus=true
 
 # coreutils function wrappers
 stat_func () {
@@ -247,7 +248,11 @@ make_post_process_formatting () {
     if [ $config_autoindent ]; then
       temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
         die "Failed to create temporary file" 1
-      awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/(^[0-9cdghisGIT;\+].*\t|^[=\*\%\#\!\:\~\.].*)/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
+      if [ $config_gophernicus ]; then
+        awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/(^[0-9cdghisGIT;\+].*\t|^[=\*\%\#\!\-\:\~\.].*)/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
+      else
+        awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/^[0-9cdghisGIT;\+].*\t/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
+      fi
       # create post file normally to respect umask
       touch "${post_file}"
       cat "${temp_post}" > "${post_file}"
@@ -584,6 +589,11 @@ quickstart () {
   read -r config_gopher_port
   printf "Root directory of your gopher site? "
   read -r config_gopher_root
+  if yesno "Is your gopher server 'gophernicus'? "; then
+    config_gophernicus=true
+  else
+    config_gophernicus=false
+  fi
   # add trailing slash if missing
   config_gopher_root="${config_gopher_root%/}/"
   if yesno "Create a phlog? "; then
@@ -654,6 +664,7 @@ create_config () {
       printf "config_git_push=%s\\n" "$config_git_push"
       printf "\\n"
       printf "config_autoindent=%s\\n" "$config_autoindent"
+      printf "config_gophernicus=%s\\n" "$config_gophernicus"
       printf "\\n"
       printf "config_file_rss=\"%s\"\\n" "$config_file_rss"
       printf "config_gopher_name=\"%s\"\\n" "$config_gopher_name"
