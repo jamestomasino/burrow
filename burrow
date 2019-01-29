@@ -245,10 +245,10 @@ make_post_git () {
 make_post_process_formatting () {
   # If using gophermap, prefix all post lines with "i" except links
   if $use_gophermap; then
-    if [ $config_autoindent ]; then
+    if $config_autoindent; then
       temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
         die "Failed to create temporary file" 1
-      if [ $config_gophernicus ]; then
+      if $config_gophernicus; then
         awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/(^[0-9cdghisGIT;\+].*\t|^[=\*\%\#\!\-\:\~\.].*)/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
       else
         awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/^[0-9cdghisGIT;\+].*\t/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
