@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="v1.7.7"
+version="v1.7.8"
 
 configfiles="/etc/burrow/config $HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
 
@@ -249,7 +249,7 @@ make_post_process_formatting () {
       temp_post=$(mktemp -t "$(basename "$0").post.XXXXXXX") || \
         die "Failed to create temporary file" 1
       if $config_gophernicus; then
-        awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/(^[0-9cdghisGIT;\+].*\t|^[=\*\%\#\!\-\:\~\.].*)/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
+        awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/(^[0-9cdghisGIT;\+].*\t|^[=\*\%\#\!\:\~\.].*)/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
       else
         awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" '/^[0-9cdghisGIT;\+].*\t/ {print $0; next} {print "i" $0 "\t\t" server "\t" port}' "$post_file" > "${temp_post}"
       fi
