@@ -1,8 +1,12 @@
 #!/bin/sh
 
 version="v1.7.8"
-
-configfiles="/etc/burrow/config $HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
+configsystem="/etc/burrow/config"
+if [ ! -z "$XDG_CONFIG_HOME" ]; then
+  configfiles="${XDG_CONFIG_HOME}/burrow/config"
+else
+  configfiles="$HOME/.config/burrow/config $HOME/.config/burrow $HOME/.burrow"
+fi
 
 # vars from config
 config_dir_gopher="$HOME/gopher/"
@@ -557,15 +561,11 @@ make_rss () {
 }
 
 edit_config () {
-  if [ -f "$HOME/.config/burrow/config" ]; then
-    ${EDITOR:-vim} "$HOME/.config/burrow/config"
-  elif [ -f "$HOME/.config/burrow" ]; then
-    ${EDITOR:-vim} "$HOME/.config/burrow"
-  elif [ -f "$HOME/.burrow" ]; then
-    ${EDITOR:-vim} "$HOME/.burrow"
-  else
-    die "No configuration found" 0
-  fi
+  for configfile in $configfiles; do
+    if [ -f "$configfile" ] && [ -w "$configfile" ]; then
+      ${EDITOR:-vim} "$configfile"
+    fi
+  done
 }
 
 yesno () {
@@ -643,10 +643,18 @@ quickstart () {
 }
 
 create_config () {
-  if [ ! -f "$HOME/.config/burrow/config" ] && \
-    [ ! -f "$HOME/.config/burrow" ] && \
-    [ ! -f "$HOME/.burrow" ]; then
-    config="$HOME/.config/burrow/config"
+  match=0
+  for configfile in $configfiles; do
+    if [ -f "$configfile" ]; then
+      match=1
+    fi
+  done
+  if [ $match -eq 0 ]; then
+    if [ ! -z "$XDG_CONFIG_HOME" ]; then
+      config="$XDC_CONFIG_HOME/burrow/config"
+    else
+      config="$HOME/.config/burrow/config"
+    fi
     mkdir -p "$(dirname "$config")"
     {
       printf "config_dir_gopher=\"%s\"\\n" "$config_dir_gopher"
@@ -713,6 +721,13 @@ main () {
     edit_config
   fi
 
+  # load system config first
+  if [ -f "$configsystem" ]; then
+    # shellcheck disable=SC1090
+    . "$configsystem"
+  fi
+
+  # load any user configuration files in order
   for configfile in $configfiles; do
     if [ -f "$configfile" ]; then
       # shellcheck disable=SC1090

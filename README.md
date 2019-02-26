@@ -50,9 +50,10 @@ _`man burrow` or `burrow -h` for more information._
 The following locations are available for configuration:
 
 1) `/etc/burrow/config`
-2) `$HOME/.config/burrow/config`
-3) `$HOME/.config/burrow`
-4) `$HOME/.burrow`
+2) `$XDG_CONFIG_HOME`
+3) `$HOME/.config/burrow/config`
+4) `$HOME/.config/burrow`
+5) `$HOME/.burrow`
 
 These files are processed in the order listed. Variables defined in multiple
 locations will use the last assigned value.
