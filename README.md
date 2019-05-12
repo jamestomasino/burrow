@@ -4,18 +4,24 @@
 
 ## Installation
 
-### Install
-
-`sudo make install`
-
 _Note: On systems without admin access the binary can be run directly from the
 git repo, but will lack `man` support and command completion._
 
 See the [Getting Started](https://github.com/jamestomasino/burrow/wiki/Getting-Started) guide.
 
+### Install on Linux / MacOS
+
+`sudo make install`
+
+### Install on BSD systems
+
+- Installing bash-completion via either `pkg install bash-completion` or via the `shells/bash-completion` port.
+- Installing the GNU version of make via either `pkg install gmake` or the `port devel/gmake`.
+- Rather than running `sudo make install`, run `sudo gmake install`.
+
 ### Uninstall
 
-`sudo make uninstall`
+`sudo make uninstall` # or gmake uninstall on BSD
 
 ## Usage
 
