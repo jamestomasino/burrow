@@ -15,9 +15,19 @@ See the [Getting Started](https://github.com/jamestomasino/burrow/wiki/Getting-S
 
 ### Install on BSD systems
 
+#### FreeBSD
+
 - Installing bash-completion via either `pkg install bash-completion` or via the `shells/bash-completion` port.
 - Installing the GNU version of make via either `pkg install gmake` or the `port devel/gmake`.
 - Rather than running `sudo make install`, run `sudo gmake install`.
+
+#### OpenBSD
+
+- Install the GNU version of make via either `pkg_add gmake` using packages or the port `devel/gmake`.
+- There is no bash-completion package or port in OpenBSD. However the source code for bash-completion can be found at (https://github.com/scop/bash-completion).
+- Burrow appears to install and run without the presence of bash-completion. Exercise caution.
+- As root (or via `doas`), run `gmake install`.
+
 
 ### Uninstall
 
