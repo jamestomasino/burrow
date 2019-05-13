@@ -24,7 +24,7 @@ See the [Getting Started](https://github.com/jamestomasino/burrow/wiki/Getting-S
 #### OpenBSD
 
 - Install the GNU version of make via either `pkg_add gmake` or the port `devel/gmake`.
-- There is no bash-completion package or port in OpenBSD. However the source code can be found at (https://github.com/scop/bash-completion).
+- There is no bash-completion package or port in OpenBSD. However the source code can be found at https://github.com/scop/bash-completion
 - Burrow appears to install and run without the presence of bash-completion. Exercise caution.
 - As root (or via `doas`), run `gmake install`.
 
