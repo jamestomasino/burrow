@@ -58,7 +58,7 @@ pop_d () {
 }
 
 show_help () {
-  cat > /dev/stdout << END
+  cat << END
 burrow [options] [commands]
 
 COMMANDS:
