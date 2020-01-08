@@ -107,6 +107,8 @@ _Note: This file is a valid Bash script and will be sourced upon load._
 There is [another burrow project](https://github.com/sloumdrone/burrow) created
 by _sloumdrone_. His burrow project is a GUI gopher client. Please check it out!
 
+There is also another project called "Burrow the Burrows" which can be found on gopher at: `gopher://kalos.mine.nu/1/burrow/index.gph`. It aims to construct and maintain a graph of the whole Gopherspace.
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to
 discuss what you would like to change.
