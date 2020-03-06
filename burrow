@@ -1,6 +1,6 @@
 #!/bin/sh
 
-version="v1.7.8"
+version="v1.7.9"
 configsystem="/etc/burrow/config"
 if [ -n "$XDG_CONFIG_HOME" ]; then
   configfiles="${XDG_CONFIG_HOME}/burrow/config"
@@ -84,7 +84,7 @@ check_coreutils () {
       stat -c %Y "$1"
     }
     date_func () {
-      date -d "$1" +"%a, %d %b %Y %T %z"
+      date -d "$1" +"%a, %d %b %Y %T %z" 2>/dev/null
     }
   else
     # BSD environment
@@ -93,7 +93,7 @@ check_coreutils () {
     }
     date_func () {
       # $1 will be in YYYYMMDD format
-      printf "%s" "$1" | awk 'BEGIN {n = split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec",month)} { y=substr($0, 0, 4); m=substr($0,5,2); gsub ("^0*", "", m); d=substr($0,7,2); print d, month[m], y, "00:00:00 +0000"}'
+      printf "%s" "$1" | awk 'BEGIN {n = split("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec",month)} { y=substr($0, 0, 4); m=substr($0,5,2); gsub ("^0*", "", m); d=substr($0,7,2); print d, month[m], y, "00:00:00 +0000"}' 2>/dev/null
     }
   fi
 }
@@ -539,21 +539,24 @@ make_rss () {
     fi
     date="$(printf "%s" "$filename" | sed 's|^\./||' | awk 'BEGIN { FS="-" } { print $1; }')"
     title="$(printf "%s" "$filename" | awk 'BEGIN { FS="-" } { $1=""; print $0; }' | sed "s|/gophermap||" | sed 's/^\ //' | sed 's|/$||' | awk '{for(i=1;i<=NF;i++){ $i=toupper(substr($i,1,1)) substr($i,2) }}1')"
-    {
-      printf "<item>\\n"
-      printf "  <title>%s</title>\\n" "$title"
-      printf "  <link>gopher://%s/%s%s%s/%s</link>\\n" "$config_gopher_server" "$item_type" "$config_gopher_root" "$config_dir_phlog" "$filename"
-      printf "  <pubdate>%s</pubdate>\\n" "$(date_func "$date")"
-      printf "  <description><![CDATA[<pre>\\n"
-      if [ "$item_type" -eq 1 ]
-      then
-        awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" -F"\\t" '/^[2-9\+GITs].*\t/ {print $0; next} /^h.*\t/ { l=substr($1, 2, length($1)); print l "\n    " substr($2, 5, length($2)); next } /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); (!$3) ? s=server : s=$3; print l "\n    gopher://" s  "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
-      else
-        cat "$f"
-      fi
-      printf "</pre>]]></description>\\n"
-      printf "</item>\\n"
-    } >> "${config_dir_gopher}${config_file_rss}"
+    dateval=$(date_func "$date")
+    if [ -n "$dateval" ]; then
+      {
+        printf "<item>\\n"
+        printf "  <title>%s</title>\\n" "$title"
+        printf "  <link>gopher://%s/%s%s%s/%s</link>\\n" "$config_gopher_server" "$item_type" "$config_gopher_root" "$config_dir_phlog" "$filename"
+        printf "  <pubdate>%s</pubdate>\\n" "$dateval"
+        printf "  <description><![CDATA[<pre>\\n"
+        if [ "$item_type" -eq 1 ]
+        then
+          awk -v server="${config_gopher_server}" -v port="${config_gopher_port}" -F"\\t" '/^[2-9\+GITs].*\t/ {print $0; next} /^h.*\t/ { l=substr($1, 2, length($1)); print l "\n    " substr($2, 5, length($2)); next } /^[0-1].*\t/ { l=substr($1, 2, length($1)); t=substr($1,1,1); (!$3) ? s=server : s=$3; print l "\n    gopher://" s  "/" t $2; next } {sub(/^i/, "", $1);print $1}' "$f"
+        else
+          cat "$f"
+        fi
+        printf "</pre>]]></description>\\n"
+        printf "</item>\\n"
+      } >> "${config_dir_gopher}${config_file_rss}"
+    fi
   done
   pop_d
   printf "</channel>\\n" >> "${config_dir_gopher}${config_file_rss}"
