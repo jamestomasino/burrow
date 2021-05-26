@@ -109,6 +109,8 @@ by _sloumdrone_. His burrow project is a GUI gopher client. Please check it out!
 
 There is also another project called "Burrow the Burrows" which can be found on gopher at: `gopher://kalos.mine.nu/1/burrow/index.gph`. It aims to construct and maintain a graph of the whole Gopherspace.
 
+Finally, there is another [static site generator for gopher](https://github.com/hyperrealgopher/burrow) written in Haskell by @hyperrealgopher. It has similar features to my burrow.
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to
 discuss what you would like to change.
