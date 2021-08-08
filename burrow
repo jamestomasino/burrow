@@ -654,7 +654,7 @@ create_config () {
   done
   if [ $match -eq 0 ]; then
     if [ -n "$XDG_CONFIG_HOME" ]; then
-      config="$XDC_CONFIG_HOME/burrow/config"
+      config="$XDG_CONFIG_HOME/burrow/config"
     else
       config="$HOME/.config/burrow/config"
     fi
